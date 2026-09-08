@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # BANCO DE DADOS POSTGRESQL (Tabelas canônicas e persistência)
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: bazar_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: bazar_db
+      POSTGRES_USER: bazar_user
+      POSTGRES_PASSWORD: bazar_pass_2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bazar_user -d bazar_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------
+  # REDIS (Filas de eventos de mensageria e idempotência)
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: bazar_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------
+  # N8N (Automação de workflows, recuperação e pós-venda)
+  # -------------------------------------------------------------
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: bazar_n8n
+    restart: always
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=bazar_admin
+      - N8N_BASIC_AUTH_PASSWORD=bazar_pass_2026
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ../automation/n8n:/workflows:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # -------------------------------------------------------------
+  # APLICAÇÃO E-COMMERCE & API (Next.js + Bot Operacional)
+  # -------------------------------------------------------------
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bazar_app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://bazar_user:bazar_pass_2026@postgres:5432/bazar_db?schema=public
+      - REDIS_URL=redis://redis:6379
+      - AI_ENABLED=false
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook/bazar-eventos
+      - MERCADOPAGO_ACCESS_TOKEN=TEST-0000000000000000-000000-00000000000000000000000000000000-000000000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:

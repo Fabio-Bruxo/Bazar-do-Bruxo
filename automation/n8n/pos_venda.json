@@ -1,0 +1,117 @@
+{
+  "name": "Pós-Venda & Rastreamento - O Bazar do Bruxo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pos-venda",
+        "options": {}
+      },
+      "id": "webhook-order-status",
+      "name": "Webhook Status Pedido",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.body.status}}",
+              "value2": "PAID"
+            },
+            {
+              "value1": "={{$json.body.status}}",
+              "value2": "SHIPPED"
+            }
+          ]
+        }
+      },
+      "id": "filter-event-type",
+      "name": "Filtrar Evento",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const body = items[0].json.body;\nlet text = '';\nif (body.status === 'PAID') {\n  text = `🌟 *Pagamento Confirmado!*\\n\\nOlá, ${body.customerName}! O pagamento do seu pedido *${body.orderCode}* foi recebido e consagrado.\\n\\nNossos bruxos já iniciaram a separação dos seus itens sagrados no altar. Em até 24h a 48h úteis você receberá o código de rastreamento por aqui!\\n\\nEnquanto isso, explore nosso Grimório com orientações rituais:\\n🔗 https://obazardobruxo.com.br/grimorio`;\n} else if (body.status === 'SHIPPED') {\n  text = `📦 *Seu Pedido Está a Caminho!*\\n\\nOlá, ${body.customerName}! Seu pedido *${body.orderCode}* acaba de ser despachado.\\n\\n🚚 Transportadora: ${body.carrier || 'Correios'}\\n📍 Código de Rastreamento: *${body.trackingCode}*\\n🔗 Acompanhar: https://obazardobruxo.com.br/minha-conta/pedidos\\n\\nQue a luz guie sua encomenda até o seu lar! ✨`;\n}\nreturn [{ json: { phone: body.customerPhone, text } }];"
+      },
+      "id": "format-post-sale",
+      "name": "Formatar Notificação",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.EVOLUTION_API_ENDPOINT}}/message/sendText/{{$env.EVOLUTION_API_INSTANCE}}",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "number",
+              "value": "={{$json.phone}}"
+            },
+            {
+              "name": "text",
+              "value": "={{$json.text}}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "apikey",
+              "value": "={{$env.EVOLUTION_API_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "send-post-sale-whatsapp",
+      "name": "Enviar Notificação WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Status Pedido": {
+      "main": [
+        [
+          {
+            "node": "Filtrar Evento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar Evento": {
+      "main": [
+        [
+          {
+            "node": "Formatar Notificação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Notificação": {
+      "main": [
+        [
+          {
+            "node": "Enviar Notificação WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

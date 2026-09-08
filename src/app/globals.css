@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-charcoal: #121113;
+  --color-charcoal-light: #1a181b;
+  --color-wine: #4a1224;
+  --color-wine-light: #6b1d38;
+  --color-moss: #232f24;
+  --color-gold: #c5a869;
+  --color-gold-light: #e5c378;
+  --color-parchment: #f5efeb;
+  --color-parchment-dim: #eae2d8;
+}
+
+body {
+  background-color: #121113;
+  color: #f5efeb;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
+  selection-background-color: #6b1d38;
+  selection-color: #f5efeb;
+}
+
+/* Tipografia mística para títulos */
+h1, h2, h3, .font-mystic {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.03em;
+}
+
+.font-editorial {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+/* Scrollbar estilizada temática de bazar antigo */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #121113;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d1b36;
+  border-radius: 4px;
+  border: 1px solid #3e244a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b1d38;
+}
+
+/* Brilhos e bordas ornamentais sutis */
+.gold-border {
+  border: 1px solid rgba(197, 168, 105, 0.25);
+}
+
+.gold-glow:hover {
+  box-shadow: 0 0 20px rgba(197, 168, 105, 0.2);
+  border-color: rgba(197, 168, 105, 0.5);
+}
+
+.wine-glow:hover {
+  box-shadow: 0 0 25px rgba(107, 29, 56, 0.35);
+}
+
+/* Textura suave de papel envelhecido / atmosfera de vela */
+.bg-parchment-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(197, 168, 105, 0.08) 0%, transparent 60%);
+}
+
+.bg-hero-mystic {
+  background: radial-gradient(ellipse at center top, rgba(74, 18, 36, 0.35) 0%, rgba(18, 17, 19, 0.98) 75%),
+              linear-gradient(180deg, rgba(18, 17, 19, 0.6) 0%, #121113 100%);
+}

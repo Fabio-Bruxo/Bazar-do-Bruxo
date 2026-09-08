@@ -1,0 +1,85 @@
+{
+  "name": "Alertas Operacionais & Exceções - O Bazar do Bruxo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "alerta-operacional",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Exceção / Alerta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const alert = items[0].json.body;\nconst message = `🚨 *ALERTA OPERACIONAL - O BAZAR DO BRUXO*\\n\\n` +\n  `📌 Tipo: *${alert.eventType || 'EXCEÇÃO'}*\\n` +\n  `⚠️ Prioridade: *${alert.priority || 'ALTA'}*\\n` +\n  `🆔 Referência: ${alert.orderCode || alert.targetId || 'N/A'}\\n` +\n  `💬 Motivo: ${alert.reason || alert.message}\\n\\n` +\n  `Acesse o painel para intervir:\\n🔗 https://obazardobruxo.com.br/admin/excecoes`;\nreturn [{ json: { phone: process.env.ADMIN_ALERT_PHONE || '5513998039867', message } }];"
+      },
+      "id": "format-alert",
+      "name": "Formatar Alerta Admin",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.EVOLUTION_API_ENDPOINT}}/message/sendText/{{$env.EVOLUTION_API_INSTANCE}}",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "number",
+              "value": "={{$json.phone}}"
+            },
+            {
+              "name": "text",
+              "value": "={{$json.message}}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "apikey",
+              "value": "={{$env.EVOLUTION_API_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "send-admin-alert",
+      "name": "Notificar Admin WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Exceção / Alerta": {
+      "main": [
+        [
+          {
+            "node": "Formatar Alerta Admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Alerta Admin": {
+      "main": [
+        [
+          {
+            "node": "Notificar Admin WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

@@ -1,0 +1,134 @@
+{
+  "name": "Recuperação de Carrinho - O Bazar do Bruxo",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "A cada 30 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT c.id AS cart_id, cu.name, cu.whatsapp, cu.phone, c.subtotal FROM carts c JOIN customers cu ON c.customer_id = cu.id WHERE c.status = 'ACTIVE' AND c.recovery_attempts < 2 AND c.opted_out = false AND c.updated_at < NOW() - INTERVAL '30 minutes';"
+      },
+      "id": "query-abandoned-carts",
+      "name": "Buscar Carrinhos Abandonados",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "return items.map(item => {\n  const customer = item.json;\n  const firstName = customer.name.split(' ')[0] || 'Buscador(a)';\n  const message = `🌙 Olá, ${firstName}! Sentimos que seu ritual ainda está incompleto em O Bazar do Bruxo.\\n\\nSeus itens sagrados continuam reservados com carinho. Use o cupom místico *PRIMEIRORITUAL* para obter 10% de desconto adicional na conclusão:\\n🔗 https://obazardobruxo.com.br/carrinho\\n\\nSe precisar de ajuda com prazos ou propriedades das peças, responda esta mensagem!`;\n  return {\n    json: {\n      cartId: customer.cart_id,\n      phone: customer.whatsapp || customer.phone,\n      message: message\n    }\n  };\n});"
+      },
+      "id": "format-message",
+      "name": "Formatar Mensagem Ritual",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.EVOLUTION_API_ENDPOINT}}/message/sendText/{{$env.EVOLUTION_API_INSTANCE}}",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "number",
+              "value": "={{$json.phone}}"
+            },
+            {
+              "name": "text",
+              "value": "={{$json.message}}"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "apikey",
+              "value": "={{$env.EVOLUTION_API_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "send-whatsapp",
+      "name": "Enviar WhatsApp (Evolution API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE carts SET recovery_attempts = recovery_attempts + 1, last_recovery_at = NOW(), updated_at = NOW() WHERE id = '{{$json.cartId}}';"
+      },
+      "id": "update-cart-status",
+      "name": "Incrementar Tentativas",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "A cada 30 minutos": {
+      "main": [
+        [
+          {
+            "node": "Buscar Carrinhos Abandonados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Carrinhos Abandonados": {
+      "main": [
+        [
+          {
+            "node": "Formatar Mensagem Ritual",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Mensagem Ritual": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp (Evolution API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp (Evolution API)": {
+      "main": [
+        [
+          {
+            "node": "Incrementar Tentativas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}
