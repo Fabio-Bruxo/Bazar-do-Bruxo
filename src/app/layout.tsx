@@ -8,6 +8,8 @@ import Footer from '@/components/Footer';
 import CartDrawer from '@/components/CartDrawer';
 import MobileNav from '@/components/MobileNav';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import { Analytics } from '@vercel/analytics/next';
+
 
 export const metadata: Metadata = {
   title: 'O Bazar do Bruxo | Tudo para o seu ritual.',
@@ -46,6 +48,7 @@ export default function RootLayout({
               <WhatsAppButton />
               <MobileNav />
               <Footer />
+              <Analytics />
             </WishlistProvider>
           </CartProvider>
         </AuthProvider>
