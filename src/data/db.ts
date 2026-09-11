@@ -133,126 +133,57 @@ export const INITIAL_SETTINGS: StoreSettings = {
   supportEmail: 'contato@obazardobruxo.com.br',
 };
 
-// Pedidos simulados para o Admin Dashboard já iniciar com métricas reais
-export const INITIAL_ORDERS: Order[] = [
-  {
-    id: 'ord-1001',
-    code: 'BZR-8921',
-    customer: {
-      name: 'Helena Ravena',
-      email: 'helena.ravena@exemplo.com',
-      phone: '(11) 98765-4321',
-      document: '123.456.789-00',
-      address: {
-        zipCode: '01310-100',
-        street: 'Avenida Paulista',
-        number: '1500',
-        neighborhood: 'Bela Vista',
-        city: 'São Paulo',
-        state: 'SP',
-      },
-    },
-    items: [
-      {
-        productId: 'prod-20',
-        productName: 'Kit Bruxo Iniciante (Caixa de Madeira Pirografada)',
-        price: 169.00,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=600&auto=format&fit=crop',
-      },
-      {
-        productId: 'prod-15',
-        productName: 'Incenso Tradicional Indiano Nag Champa Masala',
-        price: 19.90,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=600&auto=format&fit=crop',
-      },
-    ],
-    subtotal: 188.90,
-    shipping: 0,
-    discount: 18.89,
-    total: 170.01,
-    paymentMethod: 'pix',
-    paymentStatus: 'paid',
-    orderStatus: 'despachado',
-    trackingCode: 'BR987654321XP',
-    appliedCoupon: 'PRIMEIRORITUAL',
-    orderBumpAccepted: true,
-    postPurchaseUpsellAccepted: false,
-    createdAt: '2026-09-07T18:32:00Z',
-  },
-  {
-    id: 'ord-1002',
-    code: 'BZR-8922',
-    customer: {
-      name: 'Gabriel Silveira',
-      email: 'gabriel.silveira@exemplo.com',
-      phone: '(21) 97654-3210',
-      document: '987.654.321-99',
-      address: {
-        zipCode: '22041-001',
-        street: 'Rua Barata Ribeiro',
-        number: '200',
-        complement: 'Apt 402',
-        neighborhood: 'Copacabana',
-        city: 'Rio de Janeiro',
-        state: 'RJ',
-      },
-    },
-    items: [
-      {
-        productId: 'prod-01',
-        productName: 'Drusa de Ametista Natural',
-        price: 79.90,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1599707367072-cd6ada2bc375?q=80&w=600&auto=format&fit=crop',
-      },
-      {
-        productId: 'prod-17',
-        productName: 'Incensário Cascata Cerâmica Artesanal Noite Estrelada',
-        price: 79.00,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=600&auto=format&fit=crop',
-      },
-    ],
-    subtotal: 158.90,
-    shipping: 19.90,
-    discount: 0,
-    total: 178.80,
-    paymentMethod: 'credit_card',
-    paymentStatus: 'paid',
-    orderStatus: 'preparando',
-    orderBumpAccepted: false,
-    postPurchaseUpsellAccepted: true,
-    createdAt: '2026-09-08T10:15:00Z',
-  },
-];
+// Pedidos zerados: nenhuma venda ilusória pré-carregada
+export const INITIAL_ORDERS: Order[] = [];
 
-export const INITIAL_LEADS: Lead[] = [
-  {
-    id: 'lead-01',
-    name: 'Carolina Mendes',
-    email: 'carolina.mendes@exemplo.com',
-    preference: 'Cristais',
-    source: 'quiz',
-    quizResult: 'ametista',
-    createdAt: '2026-09-08T09:22:00Z',
-  },
-  {
-    id: 'lead-02',
-    name: 'Thiago Alencar',
-    email: 'thiago.alencar@exemplo.com',
-    preference: 'Rituais',
-    source: 'newsletter',
-    createdAt: '2026-09-08T11:45:00Z',
-  },
-  {
-    id: 'lead-03',
-    name: 'Beatriz Fontes',
-    email: 'beatriz.fontes@exemplo.com',
-    preference: 'Aromas',
-    source: 'quiz',
-    quizResult: 'selenita',
-    createdAt: '2026-09-08T13:10:00Z',
-  },
-];
+// Leads zerados
+export const INITIAL_LEADS: Lead[] = [];
+
+// Funções de gerenciamento dinâmico do catálogo em tempo real
+export function getStoredProducts(): Product[] {
+  if (typeof window === 'undefined') {
+    return ALL_INITIAL_PRODUCTS;
+  }
+  try {
+    const saved = localStorage.getItem('bazar_catalog_products');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return ALL_INITIAL_PRODUCTS;
+}
+
+export function saveStoredProducts(products: Product[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('bazar_catalog_products', JSON.stringify(products));
+    window.dispatchEvent(new Event('bazar_catalog_updated'));
+  } catch (e) {}
+}
+
+export function getStoreSettings(): StoreSettings {
+  if (typeof window === 'undefined') {
+    return INITIAL_SETTINGS;
+  }
+  try {
+    const saved = localStorage.getItem('bazar_store_settings');
+    if (saved) {
+      return { ...INITIAL_SETTINGS, ...JSON.parse(saved) };
+    }
+  } catch (e) {}
+  return INITIAL_SETTINGS;
+}
+
+export function saveStoreSettings(settings: Partial<StoreSettings>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = getStoreSettings();
+    const updated = { ...current, ...settings };
+    localStorage.setItem('bazar_store_settings', JSON.stringify(updated));
+    window.dispatchEvent(new Event('bazar_settings_updated'));
+  } catch (e) {}
+}
+

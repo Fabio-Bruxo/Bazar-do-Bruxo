@@ -17,48 +17,26 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password?: string) => Promise<{ success: boolean; message?: string; role?: string }>;
-  loginDemo: () => void;
   register: (data: RegisterData) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateProfile: (data: Partial<User>) => void;
 }
 
-// Usuário padrão de demonstração - Cliente
-export const DEMO_USER: User = {
-  id: 'usr-helena-01',
-  name: 'Helena Ravena',
-  email: 'helena.ravena@obazar.com.br',
-  phone: '(11) 98765-4321',
-  document: '123.456.789-00',
-  role: 'customer',
-  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop',
-  address: {
-    zipCode: '01310-100',
-    street: 'Avenida Paulista',
-    number: '1500',
-    complement: 'Apt 82',
-    neighborhood: 'Bela Vista',
-    city: 'São Paulo',
-    state: 'SP',
-  },
-  createdAt: '2026-08-15T10:00:00Z',
-};
-
-// Usuário padrão de demonstração - Administrador
+// Conta de Administrador exclusiva e oficial do Bazar
 export const ADMIN_USER: User = {
-  id: 'usr-admin-01',
-  name: 'O Bruxo Regente (Administrador)',
-  email: 'admin@obazardobruxo.com.br',
-  phone: '(11) 99988-7766',
+  id: 'usr-admin-fabinho',
+  name: 'Fabinho (Administrador)',
+  email: 'fabinhojr6336@gmail.com',
+  phone: '(13) 99803-9867',
   document: '000.000.000-00',
   role: 'admin',
-  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop',
   address: {
-    zipCode: '01001-000',
-    street: 'Praça da Sé (Altar Central)',
+    zipCode: '11000-000',
+    street: 'Altar Central do Bazar',
     number: '1',
     neighborhood: 'Centro',
-    city: 'São Paulo',
+    city: 'Santos',
     state: 'SP',
   },
   createdAt: '2026-01-01T00:00:00Z',
@@ -74,7 +52,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const savedUser = localStorage.getItem('bazar_auth_user');
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
+        const parsed = JSON.parse(savedUser);
+        // Limpar qualquer resquício de conta demonstrativa antiga (ex: Helena Ravena)
+        if (parsed.email === 'helena.ravena@obazar.com.br' || parsed.email === 'helena.ravena@exemplo.com' || parsed.email === 'admin@obazardobruxo.com.br') {
+          localStorage.removeItem('bazar_auth_user');
+          setUser(null);
+        } else {
+          setUser(parsed);
+        }
       }
     } catch (e) {
       console.error('Erro ao recuperar usuário logado', e);
@@ -86,27 +71,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password?: string): Promise<{ success: boolean; message?: string; role?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Acesso Administrador
-    if (cleanEmail === 'admin@obazardobruxo.com.br' || cleanEmail === 'admin@bazar.com') {
-      if (!password || password === 'admin123' || password.length > 0) {
+    // 1. Acesso Administrador Exclusivo
+    if (cleanEmail === 'fabinhojr6336@gmail.com') {
+      if (password === 'osolealua15') {
         setUser(ADMIN_USER);
         try {
           localStorage.setItem('bazar_auth_user', JSON.stringify(ADMIN_USER));
         } catch (e) {}
         return { success: true, role: 'admin' };
+      } else {
+        return {
+          success: false,
+          message: 'Senha incorreta para a conta de administrador.',
+        };
       }
     }
 
-    // 2. Acesso Cliente Demo (Helena Ravena)
-    if (cleanEmail === 'helena.ravena@exemplo.com' || cleanEmail === 'helena.ravena@obazar.com.br' || cleanEmail === 'helena@obazar.com.br') {
-      setUser(DEMO_USER);
-      try {
-        localStorage.setItem('bazar_auth_user', JSON.stringify(DEMO_USER));
-      } catch (e) {}
-      return { success: true, role: 'customer' };
-    }
-
-    // 3. Verificar no banco local de usuários cadastrados
+    // 2. Verificar no banco local de usuários cadastrados (clientes reais)
     try {
       const savedUsers: (User & { password?: string })[] = JSON.parse(
         localStorage.getItem('bazar_registered_users') || '[]'
@@ -121,9 +102,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
         }
         const { password: _, ...userData } = found;
-        setUser(userData);
-        localStorage.setItem('bazar_auth_user', JSON.stringify(userData));
-        return { success: true, role: userData.role || 'customer' };
+        // Garantir que nenhum outro usuário registrado tenha papel de administrador
+        const customerData = { ...userData, role: 'customer' as const };
+        setUser(customerData);
+        localStorage.setItem('bazar_auth_user', JSON.stringify(customerData));
+        return { success: true, role: 'customer' };
       }
     } catch (e) {}
 
@@ -133,24 +116,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
-  const loginDemo = () => {
-    setUser(DEMO_USER);
-    try {
-      localStorage.setItem('bazar_auth_user', JSON.stringify(DEMO_USER));
-    } catch (e) {}
-  };
-
   const register = async (data: RegisterData): Promise<{ success: boolean; message?: string }> => {
     const cleanEmail = data.email.trim().toLowerCase();
 
+    // Proteger e-mail do administrador contra registro indevido
+    if (cleanEmail === 'fabinhojr6336@gmail.com') {
+      return {
+        success: false,
+        message: 'Este e-mail pertence exclusivamente ao Administrador do Bazar. Acesse pela tela de login.',
+      };
+    }
+
+    // Criar estritamente como cliente (nunca admin)
     const newUser: User = {
       id: `usr-${Date.now()}`,
       name: data.name.trim(),
       email: cleanEmail,
       phone: data.phone.trim(),
       document: data.document.trim(),
+      role: 'customer',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop',
       address: data.address,
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop',
       createdAt: new Date().toISOString(),
     };
 
@@ -198,7 +184,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
-        loginDemo,
         register,
         logout,
         updateProfile,

@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Sparkles, Lock, Mail, ArrowRight, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 function LoginForm() {
@@ -11,7 +11,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || '/minha-conta';
 
-  const { login, loginDemo, isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,24 +43,12 @@ function LoginForm() {
     }
   };
 
-  const handleDemoLogin = () => {
-    loginDemo();
-    router.push(redirectUrl);
-  };
-
-  const handleAdminDemoLogin = async () => {
-    const res = await login('admin@obazardobruxo.com.br', 'admin123');
-    if (res.success) {
-      router.push('/admin');
-    }
-  };
-
   return (
     <div className="max-w-md w-full space-y-8 bg-bazar-charcoal-light/80 backdrop-blur-md p-8 sm:p-10 rounded-3xl border border-bazar-gold/40 shadow-mystic">
       {/* Cabeçalho */}
       <div className="text-center space-y-2">
         <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-bazar-gold uppercase">
-          <Sparkles className="w-3.5 h-3.5" /> Portal do Viajante
+          <Sparkles className="w-3.5 h-3.5" /> Portal de Acesso
         </span>
         <h1 className="font-mystic text-2xl sm:text-3xl font-extrabold text-bazar-parchment uppercase">
           ENTRAR NO BAZAR
@@ -68,43 +56,6 @@ function LoginForm() {
         <p className="font-editorial italic text-sm text-bazar-parchment/70 leading-relaxed">
           &ldquo;Que bom que seus passos trouxeram você de volta ao seu santuário.&rdquo;
         </p>
-      </div>
-
-      {/* Botão de Demonstração com 1 Clique */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-bazar-wine/60 to-bazar-purple/60 border border-bazar-gold/50 text-center space-y-2.5">
-        <span className="text-[11px] font-bold text-bazar-gold uppercase tracking-wider block">
-          Acesso Rápido para Avaliação
-        </span>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="py-2.5 px-3 rounded-xl bg-bazar-gold hover:bg-bazar-gold-light text-bazar-charcoal font-bold text-[11px] tracking-wider flex items-center justify-center gap-1.5 shadow-mystic-gold transition-all"
-          >
-            <UserCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>HELENA (CLIENTE)</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleAdminDemoLogin}
-            className="py-2.5 px-3 rounded-xl bg-[#1e1428] hover:bg-[#2b1c3b] border border-bazar-gold/60 text-bazar-gold hover:text-white font-bold text-[11px] tracking-wider flex items-center justify-center gap-1.5 transition-all"
-          >
-            <Sparkles className="w-3.5 h-3.5 shrink-0" />
-            <span>ADMIN (REGENTE)</span>
-          </button>
-        </div>
-        <p className="text-[10px] text-bazar-parchment/60">
-          Entrada instantânea como cliente ou administrador com todos os acessos liberados.
-        </p>
-      </div>
-
-      {/* Separador */}
-      <div className="relative flex py-2 items-center">
-        <div className="flex-grow border-t border-bazar-charcoal-border"></div>
-        <span className="flex-shrink mx-4 text-xs text-bazar-parchment/40 uppercase tracking-widest font-mono">
-          ou acesse com seu e-mail
-        </span>
-        <div className="flex-grow border-t border-bazar-charcoal-border"></div>
       </div>
 
       {/* Formulário de Login */}

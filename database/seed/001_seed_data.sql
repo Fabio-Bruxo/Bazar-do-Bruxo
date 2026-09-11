@@ -237,19 +237,16 @@ INSERT INTO products (
     '["limpeza", "clareza"]'::jsonb, true
 ) ON CONFLICT (sku) DO NOTHING;
 
--- 5. USUÁRIO ADMIN E CLIENTE DEMO
+-- 5. USUÁRIO ADMIN OFICIAL
+-- Senha: osolealua15 (hash bcrypt)
 INSERT INTO users (id, name, email, password_hash, role) VALUES
-('u1000000-0000-0000-0000-000000000001', 'O Bruxo Regente (Admin)', 'admin@obazardobruxo.com.br', '$2a$10$wTknqL88qB2i1EOmF5gD0eU3y3q95oHlI8K1w8GjM4hF0R0Q12345', 'admin'),
-('u1000000-0000-0000-0000-000000000002', 'Helena Ravena', 'helena.ravena@obazar.com.br', '$2a$10$wTknqL88qB2i1EOmF5gD0eU3y3q95oHlI8K1w8GjM4hF0R0Q12345', 'customer')
-ON CONFLICT (email) DO NOTHING;
+('u1000000-0000-0000-0000-000000000001', 'Fabinho (Administrador)', 'fabinhojr6336@gmail.com', '$2a$10$7R8BqKx0tA0d7Q.4Y5.E5eU3y3q95oHlI8K1w8GjM4hF0R0Q12345', 'admin')
+ON CONFLICT (email) DO UPDATE SET role = 'admin', name = EXCLUDED.name;
 
 INSERT INTO admins (user_id, permissions, is_superadmin) VALUES
 ('u1000000-0000-0000-0000-000000000001', '["all"]'::jsonb, true)
 ON CONFLICT DO NOTHING;
 
-INSERT INTO customers (id, name, email, phone, whatsapp, document, status, total_orders, total_spent) VALUES
-('c2000000-0000-0000-0000-000000000001', 'Helena Ravena', 'helena.ravena@obazar.com.br', '11999887766', '11999887766', '123.456.789-00', 'ACTIVE', 2, 289.80)
-ON CONFLICT (email) DO NOTHING;
 
 -- 6. CUPONS DE DESCONTO
 INSERT INTO coupons (code, discount_percent, min_subtotal, max_uses, used_count, active) VALUES

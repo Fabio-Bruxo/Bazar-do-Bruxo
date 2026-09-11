@@ -33,6 +33,7 @@ const memoryStore = {
   ]),
   payments: new Map<string, any>(),
   orders: new Map<string, any>(),
+  products: new Map<string, any>(),
   auditLogs: [] as any[],
   tickets: [] as any[],
   conversations: new Map<string, any>(),
