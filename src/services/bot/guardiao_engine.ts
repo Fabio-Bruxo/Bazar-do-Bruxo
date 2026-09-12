@@ -2,6 +2,7 @@ import { getSystemSetting, memoryStore, recordAuditLog, query } from '@/lib/db';
 import { INITIAL_PRODUCTS } from '@/data/products';
 import { detectIntent, BotIntent } from './intents';
 import { BOT_TEXTS } from './faq';
+import { MYSTIC_TOPICS, searchMysticKnowledge } from './mago_knowledge';
 
 export interface BotProcessInput {
   phone: string;
@@ -235,9 +236,45 @@ export class GuardiaoEngine {
         reply = BOT_TEXTS.CART_RECOVERY;
         break;
 
-      default:
-        reply = BOT_TEXTS.UNKNOWN;
+      case 'CONSELHO_MISTICO': {
+        const topicId = String(extractedValue || '');
+        const topic =
+          MYSTIC_TOPICS.find((t) => t.id === topicId) ||
+          searchMysticKnowledge(input.message)?.topic;
+
+        if (topic) {
+          reply = topic.response;
+          if (topic.suggestedItems && topic.suggestedItems.length > 0) {
+            reply +=
+              `\n\n✨ *Instrumentos Sagrados Recomendados de O Bazar do Bruxo:*\n` +
+              topic.suggestedItems
+                .map((it) => `• *${it.name}* (R$ ${it.price.toFixed(2)})\n  🔗 https://obazardobruxo.com.br/produto/${it.slug}`)
+                .join('\n') +
+              `\n\nDeseja saber mais sobre este rito ou conhecer outros amuletos? Pergunte ao Guardião ou digite *menu*!`;
+          }
+        } else {
+          reply = BOT_TEXTS.UNKNOWN;
+        }
         break;
+      }
+
+      default: {
+        // Tenta encontrar conselho místico por aproximação antes de cair na dúvida genérica
+        const fallbackMystic = searchMysticKnowledge(input.message);
+        if (fallbackMystic) {
+          reply = fallbackMystic.topic.response;
+          if (fallbackMystic.topic.suggestedItems) {
+            reply +=
+              `\n\n✨ *Instrumentos Sagrados Recomendados no Bazar:*\n` +
+              fallbackMystic.topic.suggestedItems
+                .map((it) => `• *${it.name}* (R$ ${it.price.toFixed(2)})\n  🔗 https://obazardobruxo.com.br/produto/${it.slug}`)
+                .join('\n');
+          }
+        } else {
+          reply = BOT_TEXTS.UNKNOWN;
+        }
+        break;
+      }
     }
 
     // Registra mensagem de saída do bot

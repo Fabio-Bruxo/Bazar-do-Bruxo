@@ -1,3 +1,5 @@
+import { searchMysticKnowledge } from './mago_knowledge';
+
 export type BotIntent =
   | 'SAUDACAO'
   | 'MENU'
@@ -11,6 +13,7 @@ export type BotIntent =
   | 'PROBLEMA_FINANCEIRO'
   | 'PRODUTO_DANIFICADO'
   | 'RECUPERACAO_CARRINHO'
+  | 'CONSELHO_MISTICO'
   | 'DESCONHECIDO';
 
 export function normalizeText(text: string): string {
@@ -22,7 +25,6 @@ export function normalizeText(text: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
-
 
 export function detectIntent(text: string): { intent: BotIntent; extractedValue?: string | number } {
   const norm = normalizeText(text);
@@ -100,39 +102,67 @@ export function detectIntent(text: string): { intent: BotIntent; extractedValue?
     return { intent: 'RECOMENDACAO_ORCAMENTO', extractedValue: parseInt(budgetMatch[1], 10) };
   }
 
-  // 7. Busca de produtos por palavras-chave
+  // 7. Busca de produtos por intenção de compra ou catálogo direto
+  const isDirectProductInquiry =
+    norm.includes('tem ') ||
+    norm.includes('voces tem') ||
+    norm.includes('possui') ||
+    norm.includes('comprar') ||
+    norm.includes('valor de') ||
+    norm.includes('quanto custa') ||
+    norm.includes('preco') ||
+    norm.includes('vende') ||
+    norm.includes('catalogo') ||
+    norm.includes('drusa');
+
   const productKeywords = [
     'ametista', 'quartzo', 'turmalina', 'selenita', 'cristal', 'pedra',
     'incenso', 'salvia', 'breuzinho', 'aroma', 'defumacao',
     'caldeirao', 'grimorio', 'altar', 'vela', 'kit', 'ervas'
   ];
+
+  if (isDirectProductInquiry) {
+    for (const kw of productKeywords) {
+      if (norm.includes(kw)) {
+        return { intent: 'BUSCA_PRODUTO', extractedValue: kw };
+      }
+    }
+  }
+
+  // 8. Conselho Místico e Sabedoria Arcana (PDF Magia, Encantamentos e Feitiçaria)
+  const mysticMatch = searchMysticKnowledge(text);
+  if (mysticMatch) {
+    return { intent: 'CONSELHO_MISTICO', extractedValue: mysticMatch.topic.id };
+  }
+
+  // 9. Busca geral de produtos por palavras-chave remanescentes
   for (const kw of productKeywords) {
     if (norm.includes(kw)) {
       return { intent: 'BUSCA_PRODUTO', extractedValue: kw };
     }
   }
 
-  // 8. Informações de pagamento
+  // 10. Informações de pagamento
   if (norm.includes('pix') || norm.includes('cartao') || norm.includes('parcelar') || norm.includes('forma de pagamento') || norm.includes('boleto')) {
     return { intent: 'FORMAS_PAGAMENTO' };
   }
 
-  // 9. Informações de frete e prazos
+  // 12. Informações de frete e prazos
   if (norm.includes('frete') || norm.includes('prazo') || norm.includes('entrega') || norm.includes('envio') || norm.includes('frete gratis')) {
     return { intent: 'PRAZOS_FRETE' };
   }
 
-  // 10. Trocas e Devoluções
+  // 13. Trocas e Devoluções
   if (norm.includes('troca') || norm.includes('devolver') || norm.includes('arrependi') || norm.includes('garantia')) {
     return { intent: 'POLITICA_TROCAS' };
   }
 
-  // 11. Recuperação de carrinho
+  // 14. Recuperação de carrinho
   if (norm.includes('carrinho') || norm.includes('esqueci') || norm.includes('cupom') || norm.includes('desconto')) {
     return { intent: 'RECUPERACAO_CARRINHO' };
   }
 
-  // 12. Saudações
+  // 15. Saudações e comandos de retorno
   if (
     norm === 'oi' || norm === 'ola' || norm === 'ola guardiao' ||
     norm.startsWith('ola') || norm.startsWith('oi ') ||

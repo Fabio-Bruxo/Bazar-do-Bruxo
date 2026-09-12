@@ -2,7 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Send, Bot, User, ShieldAlert, Sparkles, RefreshCw, PhoneCall, ArrowLeft, MessageSquare } from 'lucide-react';
+import { Send, Bot, User, ShieldAlert, Sparkles, RefreshCw, PhoneCall, ArrowLeft, Moon, Compass, MessageSquare } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { BOT_TEXTS } from '@/services/bot/faq';
 
 interface ChatMessage {
   id: string;
@@ -13,22 +15,13 @@ interface ChatMessage {
 }
 
 export default function GuardiaoChatPage() {
+  const { user } = useAuth();
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-init',
       sender: 'BOT',
-      text: `🌙 *Saudações a O Bazar do Bruxo!*
-Eu sou *O Guardião do Bazar*, seu assistente ritualístico e operacional.
-
-Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
-
-1️⃣ Conhecer produtos sagrados
-2️⃣ Rastrear meu pedido
-3️⃣ Falar com atendente humano
-4️⃣ Formas de pagamento
-5️⃣ Prazos de entrega e frete
-6️⃣ Política de trocas e devoluções
-7️⃣ Ver menu novamente`,
+      text: BOT_TEXTS.GREETING,
       time: 'Agora',
       intent: 'SAUDACAO',
     },
@@ -68,9 +61,9 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: '5511999887766',
+          phone: user?.phone || '5511999887766',
           message: message,
-          customerName: 'Helena Ravena',
+          customerName: user?.name || 'Buscador(a)',
         }),
       });
 
@@ -80,7 +73,7 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
       if (data.mode === 'HUMAN') {
         setBotMode('HUMAN');
         if (data.ticketCreated) {
-          setTicketAlert('Chamado #HUMAN-TICKET aberto no painel administrativo. O Guardião entrou em silêncio absoluto.');
+          setTicketAlert('Chamado prioritário aberto na mesa da equipe humana. O Guardião permanecerá em silêncio.');
         }
       }
 
@@ -101,7 +94,7 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
           {
             id: `sys-${Date.now()}`,
             sender: 'SYSTEM',
-            text: '🔇 [O Guardião está silenciado pois a conversa foi transferida para um atendente humano. O robô não enviará respostas automáticas.]',
+            text: '🔇 [O Guardião está em silêncio sagrado pois a conversa foi transferida para um atendente humano. O mago não interferirá no contato direto.]',
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -113,8 +106,8 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
         {
           id: `err-${Date.now()}`,
           sender: 'SYSTEM',
-          text: 'Falha ao conectar com o serviço do Guardião. Verifique a conexão.',
-          time: 'Erro',
+          text: '⚠️ [Os ventos cósmicos oscilaram. Por favor, tente novamente em instantes.]',
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
     }
@@ -126,36 +119,97 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
     setMessages((prev) => [
       ...prev,
       {
-        id: `sys-${Date.now()}`,
+        id: `sys-reset-${Date.now()}`,
         sender: 'SYSTEM',
-        text: '✨ [Atendimento humano finalizado. O Guardião do Bazar voltou a responder automaticamente.]',
+        text: '✨ [Atendimento humano concluído. O Mago Guardião do Bazar voltou a responder suas buscas e orientações rituais.]',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
   };
 
+  // Renderizador de mensagens com formatação de links e negritos do WhatsApp
+  const renderMessageContent = (text: string) => {
+    const lines = text.split('\n');
+    return lines.map((line, idx) => {
+      // Formatação básica de links https
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const parts = line.split(urlRegex);
+
+      return (
+        <p key={idx} className="min-h-[1.2em] leading-relaxed">
+          {parts.map((part, pIdx) => {
+            if (part.match(urlRegex)) {
+              return (
+                <a
+                  key={pIdx}
+                  href={part}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-bazar-gold underline hover:text-bazar-gold-light break-all font-semibold"
+                >
+                  {part}
+                </a>
+              );
+            }
+
+            // Negrito com asteriscos *texto*
+            const boldParts = part.split(/(\*[^*]+\*)/g);
+            return boldParts.map((bPart, bIdx) => {
+              if (bPart.startsWith('*') && bPart.endsWith('*')) {
+                return (
+                  <strong key={bIdx} className="font-bold text-white">
+                    {bPart.slice(1, -1)}
+                  </strong>
+                );
+              }
+              // Itálico com _texto_
+              const italicParts = bPart.split(/(_[^_]+_)/g);
+              return italicParts.map((iPart, iIdx) => {
+                if (iPart.startsWith('_') && iPart.endsWith('_')) {
+                  return (
+                    <em key={iIdx} className="italic text-bazar-gold/90 font-serif">
+                      {iPart.slice(1, -1)}
+                    </em>
+                  );
+                }
+                return iPart;
+              });
+            });
+          })}
+        </p>
+      );
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-bazar-primary text-bazar-cream flex flex-col items-center justify-center p-4">
-      {/* Container Estilo Smartphone / WhatsApp */}
-      <div className="w-full max-w-lg bg-[#0e0914] border border-bazar-gold/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
-        {/* Topbar */}
-        <div className="bg-[#1a1224] border-b border-bazar-gold/20 p-4 flex items-center justify-between">
+    <div className="min-h-screen bg-bazar-black text-bazar-parchment flex flex-col items-center justify-center p-3 sm:p-6">
+      {/* Container Estilo Smartphone / WhatsApp Místico */}
+      <div className="w-full max-w-xl bg-[#0e0914] border-2 border-bazar-gold/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[88vh]">
+        {/* Topbar do Guardião */}
+        <div className="bg-[#181024] border-b border-bazar-gold/20 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-bazar-gold hover:text-white transition">
+            <Link href="/" className="text-bazar-gold hover:text-white transition p-1">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-bazar-gold/20 border border-bazar-gold/40 flex items-center justify-center text-bazar-gold">
-                <Sparkles className="w-5 h-5" />
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-bazar-wine to-bazar-purple border-2 border-bazar-gold flex items-center justify-center text-bazar-gold shadow-md">
+                <Moon className="w-6 h-6 text-bazar-gold" />
               </div>
-              <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1a1224] ${botMode === 'BOT' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+              <span
+                className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#181024] ${
+                  botMode === 'BOT' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                }`}
+                title={botMode === 'BOT' ? 'Mago Guardião Ativo' : 'Modo Atendente Humano'}
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-serif font-bold text-sm tracking-wide text-white">O Guardião do Bazar</h2>
+                <h2 className="font-mystic font-bold text-sm tracking-wider text-bazar-parchment">
+                  O Guardião do Bazar
+                </h2>
               </div>
-              <p className="text-[11px] text-gray-400">
-                {botMode === 'BOT' ? '🟢 Operação Automatizada Ativa' : '🟡 Modo Atendente Humano (Silenciado)'}
+              <p className="text-[11px] text-bazar-gold/80 font-editorial italic">
+                {botMode === 'BOT' ? '✦ Mago Sentinela do Altar' : '🟡 Atendimento Humano Vinculado'}
               </p>
             </div>
           </div>
@@ -164,135 +218,159 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
             {botMode === 'HUMAN' && (
               <button
                 onClick={handleResetBot}
-                title="Reativar Bot Guardião"
-                className="text-xs bg-bazar-gold/20 hover:bg-bazar-gold/30 text-bazar-gold px-2.5 py-1 rounded-md border border-bazar-gold/30 flex items-center gap-1 transition"
+                title="Reativar Mago Guardião"
+                className="text-xs bg-bazar-gold/20 hover:bg-bazar-gold/30 text-bazar-gold px-2.5 py-1.5 rounded-xl border border-bazar-gold/40 flex items-center gap-1 transition"
               >
-                <RefreshCw className="w-3 h-3" /> Reativar
+                <RefreshCw className="w-3.5 h-3.5" /> Reativar
               </button>
             )}
-            <Link
-              href="/admin/tickets"
-              className="text-xs bg-white/5 hover:bg-white/10 text-gray-300 px-2 py-1 rounded-md border border-white/10 transition flex items-center gap-1"
-            >
-              <MessageSquare className="w-3 h-3" /> Fila
-            </Link>
-          </div>
-        </div>
-
-        {/* Alerta de Ticket Aberto */}
-        {ticketAlert && (
-          <div className="bg-amber-950/70 border-b border-amber-600/40 p-2.5 text-xs text-amber-200 flex flex-col sm:flex-row items-center justify-between gap-2 px-4">
-            <span className="flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>{ticketAlert}</span>
-            </span>
             <a
               href="https://wa.me/5513998039867"
               target="_blank"
-              rel="noreferrer"
-              className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shrink-0 flex items-center gap-1 transition"
+              rel="noopener noreferrer"
+              className="text-xs bg-emerald-950/60 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition"
             >
-              <PhoneCall className="w-3 h-3" /> Falar no WhatsApp (13) 99803-9867
+              <PhoneCall className="w-3.5 h-3.5" /> WhatsApp
             </a>
+          </div>
+        </div>
+
+        {/* Alerta de Ticket Ativo */}
+        {ticketAlert && (
+          <div className="bg-amber-950/80 border-b border-amber-600/40 px-4 py-2.5 text-xs text-amber-200 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>{ticketAlert}</span>
+            </div>
+            <button
+              onClick={() => setTicketAlert(null)}
+              className="text-amber-400 hover:text-white font-bold ml-2 text-sm"
+            >
+              ×
+            </button>
           </div>
         )}
 
-        {/* Mensagens */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#0a0610]/90">
+        {/* Área de Mensagens */}
+        <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1c1228] via-[#0d0815] to-[#08050e] text-xs sm:text-sm">
           {messages.map((m) => (
             <div
               key={m.id}
               className={`flex flex-col ${
-                m.sender === 'CUSTOMER'
-                  ? 'items-end'
-                  : m.sender === 'SYSTEM'
-                  ? 'items-center text-center'
-                  : 'items-start'
+                m.sender === 'CUSTOMER' ? 'items-end' : m.sender === 'BOT' ? 'items-start' : 'items-center'
               }`}
             >
               {m.sender === 'SYSTEM' ? (
-                <div className="max-w-[85%] text-[11px] bg-white/5 text-amber-300/80 px-3 py-1.5 rounded-lg border border-amber-400/10 my-1 font-mono">
+                <div className="bg-[#1b1424] border border-bazar-gold/30 rounded-xl px-4 py-2 text-xs text-bazar-gold text-center my-2 max-w-[90%] shadow-md">
                   {m.text}
                 </div>
               ) : (
                 <div
-                  className={`max-w-[82%] p-3.5 rounded-2xl text-xs sm:text-sm whitespace-pre-wrap leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl p-3.5 shadow-lg ${
                     m.sender === 'CUSTOMER'
-                      ? 'bg-emerald-900/40 border border-emerald-500/30 text-emerald-100 rounded-tr-none'
-                      : 'bg-[#181122] border border-bazar-gold/20 text-gray-200 rounded-tl-none'
+                      ? 'bg-gradient-to-r from-bazar-wine to-bazar-wine-light text-white rounded-br-none border border-bazar-gold/30'
+                      : 'bg-[#181124] text-gray-200 rounded-bl-none border border-bazar-gold/20 shadow-mystic'
                   }`}
                 >
-                  <p>{m.text}</p>
-                  <div className="flex items-center justify-end gap-1 mt-1.5 text-[10px] text-gray-400">
-                    {m.intent && (
-                      <span className="text-[9px] uppercase px-1 py-0.2 bg-white/5 rounded text-bazar-gold/70 mr-1">
-                        {m.intent}
-                      </span>
+                  <div className="flex items-center gap-1.5 mb-1.5 opacity-60 text-[10px] uppercase font-bold tracking-wider">
+                    {m.sender === 'CUSTOMER' ? (
+                      <>
+                        <User className="w-3 h-3" /> Você
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 text-bazar-gold" /> Mago Guardião
+                      </>
                     )}
-                    <span>{m.time}</span>
+                    <span className="ml-auto">{m.time}</span>
                   </div>
+
+                  <div className="space-y-1">{renderMessageContent(m.text)}</div>
                 </div>
               )}
             </div>
           ))}
 
           {isTyping && (
-            <div className="flex items-center gap-2 text-xs text-bazar-gold/80 italic bg-[#181122] p-2.5 rounded-xl border border-bazar-gold/20 w-fit">
-              <Sparkles className="w-3.5 h-3.5 animate-spin" />
-              O Guardião está consultando os oráculos...
+            <div className="flex items-center gap-2 text-xs text-bazar-gold italic bg-[#181124] p-3 rounded-2xl border border-bazar-gold/30 w-fit shadow-md">
+              <Sparkles className="w-3.5 h-3.5 animate-spin text-bazar-gold" />
+              O Mago Guardião está consultando as escrituras arcanas...
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Atalhos Rápidos de Teste */}
-        <div className="bg-[#120c1a] border-t border-white/5 p-2 px-3 flex gap-2 overflow-x-auto text-[11px] text-gray-300 scrollbar-none">
+        {/* Pílulas de Perguntas Místicas e Operacionais */}
+        <div className="bg-[#120a1c] border-t border-bazar-gold/10 p-2 px-3 flex gap-2 overflow-x-auto text-[11px] text-gray-300 scrollbar-none">
           <button
-            onClick={() => handleSend('1')}
-            className="whitespace-nowrap px-2.5 py-1 bg-white/5 hover:bg-bazar-gold/20 border border-white/10 hover:border-bazar-gold/30 rounded-full transition"
+            onClick={() => handleSend('Como consagrar meu cristal?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
           >
-            1️⃣ Catálogo
+            🕯️ Como consagrar cristal
           </button>
           <button
-            onClick={() => handleSend('OBZ-8899')}
-            className="whitespace-nowrap px-2.5 py-1 bg-white/5 hover:bg-bazar-gold/20 border border-white/10 hover:border-bazar-gold/30 rounded-full transition"
+            onClick={() => handleSend('Como limpar a energia da minha casa?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
           >
-            📦 Rastrear OBZ-8899
+            🌿 Limpar energia do lar
           </button>
           <button
-            onClick={() => handleSend('falar com atendente')}
-            className="whitespace-nowrap px-2.5 py-1 bg-amber-950/40 hover:bg-amber-900/60 border border-amber-600/30 text-amber-200 rounded-full transition"
+            onClick={() => handleSend('Para que serve a ametista?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
           >
-            👤 Suporte Humano
+            🔮 Ametista & Ansiedade
           </button>
           <button
-            onClick={() => handleSend('4')}
-            className="whitespace-nowrap px-2.5 py-1 bg-white/5 hover:bg-bazar-gold/20 border border-white/10 hover:border-bazar-gold/30 rounded-full transition"
+            onClick={() => handleSend('Como montar um altar?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
           >
-            💳 Pagamentos
+            🏛️ Montar meu altar
           </button>
           <button
-            onClick={() => handleSend('presente até 50')}
-            className="whitespace-nowrap px-2.5 py-1 bg-white/5 hover:bg-bazar-gold/20 border border-white/10 hover:border-bazar-gold/30 rounded-full transition"
+            onClick={() => handleSend('Qual o segredo do quartzo rosa no amor?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
           >
-            💰 Até R$ 50
+            🌹 Amor & Afrodite
+          </button>
+          <button
+            onClick={() => handleSend('Quais os melhores amuletos de proteção?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
+          >
+            🛡️ Amuletos de proteção
+          </button>
+          <button
+            onClick={() => handleSend('Qual a melhor fase da lua para rituais?')}
+            className="whitespace-nowrap px-3 py-1.5 bg-bazar-gold/10 hover:bg-bazar-gold/25 border border-bazar-gold/30 text-bazar-gold rounded-full transition flex items-center gap-1"
+          >
+            🌕 Fases da Lua
+          </button>
+          <button
+            onClick={() => handleSend('Quero falar com um atendente humano')}
+            className="whitespace-nowrap px-3 py-1.5 bg-amber-950/50 hover:bg-amber-900/70 border border-amber-600/40 text-amber-200 rounded-full transition flex items-center gap-1"
+          >
+            👤 Atendimento Humano
           </button>
         </div>
 
         {/* Input Bar */}
-        <div className="bg-[#1a1224] border-t border-bazar-gold/20 p-3 flex items-center gap-2">
+        <div className="bg-[#181024] border-t border-bazar-gold/20 p-3 flex items-center gap-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={botMode === 'BOT' ? 'Digite uma opção (1 a 7) ou sua dúvida...' : 'Digite para enviar mensagem ao atendente...'}
+            placeholder={
+              botMode === 'BOT'
+                ? 'Pergunte ao Mago sobre rituais, cristais, pedidos ou envie sua dúvida...'
+                : 'Digite para enviar mensagem ao atendente humano...'
+            }
             className="flex-1 bg-[#0a0610] border border-bazar-gold/30 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-bazar-gold transition placeholder:text-gray-500"
           />
           <button
             onClick={() => handleSend()}
             disabled={!inputText.trim()}
-            className="p-2.5 bg-bazar-gold hover:bg-bazar-gold-light disabled:opacity-40 text-bazar-primary rounded-xl transition flex items-center justify-center font-bold"
+            className="p-2.5 bg-bazar-gold hover:bg-bazar-gold-light disabled:opacity-40 text-bazar-black rounded-xl transition flex items-center justify-center font-bold shadow-md"
+            title="Enviar mensagem"
           >
             <Send className="w-4 h-4" />
           </button>
