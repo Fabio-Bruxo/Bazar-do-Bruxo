@@ -116,6 +116,7 @@ export interface StoreSettings {
   activeCoupons: { code: string; discountPercent: number; minSubtotal: number }[];
   whatsappNumber: string; // WhatsApp comercial
   supportEmail: string;
+  topBannerText?: string;
 }
 
 export const INITIAL_SETTINGS: StoreSettings = {
@@ -131,6 +132,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   ],
   whatsappNumber: '5513998039867',
   supportEmail: 'contato@obazardobruxo.com.br',
+  topBannerText: 'Frete Grátis a partir de R$ 199 para todo o Brasil • Use o cupom PRIMEIRORITUAL para 10% OFF',
 };
 
 // Pedidos zerados: nenhuma venda ilusória pré-carregada

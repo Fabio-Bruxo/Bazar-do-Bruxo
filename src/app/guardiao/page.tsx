@@ -61,7 +61,7 @@ export default function GuardiaoChatPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user?.phone || '5511999887766',
+          phone: user?.phone?.replace(/\D/g, '') || '5513998039867',
           message: message,
           customerName: user?.name || 'Buscador(a)',
         }),
