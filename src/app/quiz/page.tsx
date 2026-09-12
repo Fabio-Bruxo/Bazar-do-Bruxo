@@ -2,17 +2,16 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  Sparkles, 
-  ArrowRight, 
-  RotateCcw, 
-  CheckCircle2, 
-  ShoppingBag, 
-  Tag, 
+import {
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+  RotateCcw,
+  CheckCircle2,
+  ShoppingBag,
   Send,
   Compass,
-  Flame,
-  ShieldCheck,
+  Check,
   Moon
 } from 'lucide-react';
 import { QUIZ_QUESTIONS, QUIZ_RESULTS } from '@/data/quiz';
@@ -22,8 +21,10 @@ import { trackEvent } from '@/utils/analytics';
 import { formatCurrency } from '@/utils/currency';
 
 export default function QuizPage() {
-  const [currentStep, setCurrentStep] = useState(0); // 0 a length-1
+  const [currentStep, setCurrentStep] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
+  // Resposta escolhida na pergunta atual (ainda não confirmada)
+  const [pendingAnswer, setPendingAnswer] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
@@ -34,16 +35,25 @@ export default function QuizPage() {
 
   const totalQuestions = QUIZ_QUESTIONS.length;
   const currentQuestion = QUIZ_QUESTIONS[currentStep];
+  const isLastQuestion = currentStep === totalQuestions - 1;
 
+  // Quando o usuário clica em uma opção, apenas destaca (não avança)
   const handleSelectOption = (archetype: string) => {
-    const updated = { ...selectedAnswers, [currentQuestion.id]: archetype };
-    setSelectedAnswers(updated);
-
-    if (currentStep === 0) {
+    if (currentStep === 0 && !selectedAnswers[currentQuestion.id]) {
       trackEvent('quiz_start');
     }
+    setPendingAnswer(archetype);
+  };
 
-    if (currentStep < totalQuestions - 1) {
+  // Quando clica em "Próxima" / "Ver Resultado"
+  const handleNext = () => {
+    if (!pendingAnswer) return;
+
+    const updated = { ...selectedAnswers, [currentQuestion.id]: pendingAnswer };
+    setSelectedAnswers(updated);
+    setPendingAnswer(null);
+
+    if (!isLastQuestion) {
       setCurrentStep(currentStep + 1);
     } else {
       // Calcular arquétipo mais frequente
@@ -67,8 +77,16 @@ export default function QuizPage() {
     }
   };
 
+  // Voltar à pergunta anterior
+  const handleBack = () => {
+    if (currentStep === 0) return;
+    setPendingAnswer(selectedAnswers[QUIZ_QUESTIONS[currentStep - 1].id] || null);
+    setCurrentStep(currentStep - 1);
+  };
+
   const handleRestart = () => {
     setSelectedAnswers({});
+    setPendingAnswer(null);
     setCurrentStep(0);
     setIsCompleted(false);
     setLeadSaved(false);
@@ -99,12 +117,15 @@ export default function QuizPage() {
   const suggestedProduct = ALL_INITIAL_PRODUCTS.find((p) => p.slug === resultData.suggestedProductSlug);
   const secondaryProduct = ALL_INITIAL_PRODUCTS.find((p) => p.slug === resultData.secondaryProductSlug);
 
+  // Opção selecionada para esta pergunta (pendente ou já confirmada ao voltar)
+  const currentSelected = pendingAnswer ?? selectedAnswers[currentQuestion.id] ?? null;
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-      
+
       {!isCompleted ? (
         <div className="space-y-8">
-          
+
           {/* Header do Quiz */}
           <div className="text-center max-w-2xl mx-auto">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-bazar-gold uppercase mb-2">
@@ -124,7 +145,7 @@ export default function QuizPage() {
             </div>
             <div className="w-full bg-bazar-charcoal rounded-full h-2 overflow-hidden border border-bazar-charcoal-border">
               <div
-                className="bg-gradient-to-r from-bazar-wine to-bazar-gold h-full transition-all duration-300"
+                className="bg-gradient-to-r from-bazar-wine to-bazar-gold h-full transition-all duration-500"
                 style={{ width: `${((currentStep + 1) / totalQuestions) * 100}%` }}
               />
             </div>
@@ -141,41 +162,93 @@ export default function QuizPage() {
               </p>
             </div>
 
-            {/* Opções de Resposta */}
+            {/* Opções de Resposta — clique para selecionar, sem avançar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {currentQuestion.options.map((option, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectOption(option.archetype)}
-                  className="p-5 rounded-2xl bg-bazar-charcoal border border-bazar-charcoal-border hover:border-bazar-gold hover:bg-bazar-charcoal/90 text-left transition-all duration-200 group flex flex-col justify-between hover:shadow-mystic-gold hover:scale-[1.01]"
-                >
-                  <p className="text-sm font-semibold text-bazar-parchment group-hover:text-bazar-gold transition-colors leading-relaxed">
-                    {option.text}
-                  </p>
-                  <span className="text-[11px] text-bazar-parchment/50 font-editorial italic mt-3 block">
-                    {option.description}
-                  </span>
-                </button>
-              ))}
+              {currentQuestion.options.map((option, idx) => {
+                const isSelected = currentSelected === option.archetype;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectOption(option.archetype)}
+                    className={`p-5 rounded-2xl text-left transition-all duration-200 flex flex-col justify-between group relative border-2 ${
+                      isSelected
+                        ? 'border-bazar-gold bg-bazar-gold/10 shadow-mystic-gold scale-[1.01]'
+                        : 'border-bazar-charcoal-border bg-bazar-charcoal hover:border-bazar-gold/60 hover:bg-bazar-charcoal/90 hover:shadow-mystic hover:scale-[1.01]'
+                    }`}
+                  >
+                    {/* Ícone de check quando selecionado */}
+                    {isSelected && (
+                      <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-bazar-gold flex items-center justify-center shadow-md">
+                        <Check className="w-3 h-3 text-bazar-black font-bold" />
+                      </span>
+                    )}
+                    <p className={`text-sm font-semibold leading-relaxed transition-colors pr-6 ${
+                      isSelected ? 'text-bazar-gold' : 'text-bazar-parchment group-hover:text-bazar-gold'
+                    }`}>
+                      {option.text}
+                    </p>
+                    <span className="text-[11px] text-bazar-parchment/50 font-editorial italic mt-3 block">
+                      {option.description}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Botão de Voltar se não for a primeira */}
-            {currentStep > 0 && (
-              <div className="mt-6 text-center">
-                <button
-                  onClick={() => setCurrentStep(currentStep - 1)}
-                  className="text-xs text-bazar-parchment/50 hover:text-bazar-gold underline"
-                >
-                  ← Voltar à pergunta anterior
-                </button>
-              </div>
+            {/* Navegação: Voltar + Próxima */}
+            <div className="mt-8 flex items-center justify-between gap-4">
+              {/* Botão Voltar */}
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={currentStep === 0}
+                className={`flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border transition-all ${
+                  currentStep === 0
+                    ? 'border-bazar-charcoal-border text-bazar-parchment/30 cursor-not-allowed'
+                    : 'border-bazar-charcoal-border text-bazar-parchment/70 hover:text-bazar-gold hover:border-bazar-gold/50'
+                }`}
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                Anterior
+              </button>
+
+              {/* Botão Próxima / Ver Resultado */}
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={!currentSelected}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold tracking-widest uppercase transition-all border shadow-mystic ${
+                  currentSelected
+                    ? 'bg-gradient-to-r from-bazar-wine to-bazar-wine-light border-bazar-gold/50 text-bazar-parchment hover:brightness-110 scale-100'
+                    : 'bg-bazar-charcoal border-bazar-charcoal-border text-bazar-parchment/30 cursor-not-allowed'
+                }`}
+              >
+                {isLastQuestion ? (
+                  <>
+                    <Sparkles className="w-4 h-4 text-bazar-gold" />
+                    VER MEU CRISTAL
+                  </>
+                ) : (
+                  <>
+                    PRÓXIMA
+                    <ArrowRight className="w-4 h-4 text-bazar-gold" />
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Dica de instrução quando nada selecionado */}
+            {!currentSelected && (
+              <p className="text-center text-[11px] text-bazar-parchment/40 mt-4 font-editorial italic animate-pulse">
+                ✦ Selecione uma resposta para continuar ✦
+              </p>
             )}
           </div>
         </div>
       ) : (
         /* TELA DE RESULTADO DO QUIZ */
         <div className="space-y-10 animate-in fade-in duration-500">
-          
+
           <div className="text-center max-w-2xl mx-auto">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold tracking-widest text-bazar-gold uppercase mb-2">
               <Sparkles className="w-4 h-4 text-bazar-gold" /> Seu Encontro Arcano Revelado
