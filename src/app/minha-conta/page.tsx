@@ -31,9 +31,9 @@ export default function MinhaContaPage() {
       const userOrders = allOrders.filter(
         (o) => o.customer.email.toLowerCase() === user?.email.toLowerCase()
       );
-      setOrders(userOrders.length > 0 ? userOrders : allOrders.slice(0, 2));
+      setOrders(userOrders);
     } catch (e) {
-      setOrders(INITIAL_ORDERS);
+      setOrders([]);
     }
   }, [user]);
 

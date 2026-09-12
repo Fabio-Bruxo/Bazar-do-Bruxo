@@ -200,14 +200,16 @@ export default function Header() {
                             <Package className="w-4 h-4 text-bazar-gold" />
                             <span>Minhas Compras</span>
                           </Link>
-                          <Link
-                            href="/admin"
-                            onClick={() => setIsUserMenuOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-bazar-parchment/90 hover:bg-bazar-charcoal hover:text-bazar-gold transition-colors"
-                          >
-                            <Sliders className="w-4 h-4 text-bazar-gold" />
-                            <span>Painel Administrativo</span>
-                          </Link>
+                          {user.role === 'admin' && user.email.toLowerCase() === 'fabinhojr6336@gmail.com' && (
+                            <Link
+                              href="/admin"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-bazar-gold bg-bazar-gold/10 hover:bg-bazar-gold/20 transition-colors font-semibold"
+                            >
+                              <Sliders className="w-4 h-4 text-bazar-gold" />
+                              <span>Painel Administrativo</span>
+                            </Link>
+                          )}
                         </div>
                         <div className="pt-1 border-t border-bazar-charcoal-border">
                           <button
@@ -422,6 +424,15 @@ export default function Header() {
                           Compras
                         </Link>
                       </div>
+                      {user.role === 'admin' && user.email.toLowerCase() === 'fabinhojr6336@gmail.com' && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="block text-center py-2 rounded-xl bg-bazar-gold text-bazar-black font-bold text-xs uppercase tracking-wider mt-2 shadow-md"
+                        >
+                          Painel Administrativo
+                        </Link>
+                      )}
                     </div>
                   ) : (
                     <Link

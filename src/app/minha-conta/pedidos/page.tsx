@@ -34,12 +34,12 @@ export default function MinhasComprasPage() {
       const userOrders = allOrders.filter(
         (o) => o.customer.email.toLowerCase() === user?.email.toLowerCase()
       );
-      setOrders(userOrders.length > 0 ? userOrders : allOrders);
-      if (userOrders.length > 0 || allOrders.length > 0) {
-        setExpandedOrder((userOrders[0] || allOrders[0]).id);
+      setOrders(userOrders);
+      if (userOrders.length > 0) {
+        setExpandedOrder(userOrders[0].id);
       }
     } catch (e) {
-      setOrders(INITIAL_ORDERS);
+      setOrders([]);
     }
   }, [user]);
 
