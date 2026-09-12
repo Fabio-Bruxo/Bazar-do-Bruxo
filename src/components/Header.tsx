@@ -120,7 +120,7 @@ export default function Header() {
             </div>
 
             {/* Botão de Destaque Místico Desktop */}
-            <div className="hidden lg:flex items-center">
+            <div className="hidden lg:flex items-center gap-2">
               <Link
                 href="/quiz"
                 className="relative group overflow-hidden rounded-full bg-gradient-to-r from-bazar-wine to-bazar-purple px-5 py-2.5 text-xs font-semibold tracking-wider text-bazar-parchment border border-bazar-gold/40 shadow-sm hover:border-bazar-gold hover:shadow-mystic-gold transition-all duration-300 flex items-center gap-2"
@@ -128,6 +128,13 @@ export default function Header() {
                 <Sparkles className="w-4 h-4 text-bazar-gold group-hover:rotate-12 transition-transform duration-300" />
                 <span>DESCOBRIR MEU CRISTAL</span>
                 <span className="absolute inset-0 bg-bazar-gold/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </Link>
+              <Link
+                href="/guardiao"
+                className="rounded-full bg-bazar-charcoal-light border border-bazar-gold/40 px-4 py-2.5 text-xs font-semibold tracking-wider text-bazar-gold hover:bg-bazar-gold/10 hover:border-bazar-gold hover:shadow-mystic-gold transition-all duration-300 flex items-center gap-1.5"
+              >
+                <Moon className="w-3.5 h-3.5" />
+                GUARDIÃO
               </Link>
             </div>
 
@@ -446,8 +453,8 @@ export default function Header() {
                   )}
                 </div>
 
-                {/* Botão do Quiz Mobile */}
-                <div className="mt-3">
+                {/* Botão do Quiz + Guardião Mobile */}
+                <div className="mt-3 flex flex-col gap-2">
                   <Link
                     href="/quiz"
                     onClick={() => setIsMobileMenuOpen(false)}
@@ -455,6 +462,14 @@ export default function Header() {
                   >
                     <Sparkles className="w-4 h-4 text-bazar-gold" />
                     DESCOBRIR MEU CRISTAL
+                  </Link>
+                  <Link
+                    href="/guardiao"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-bazar-charcoal-light border border-bazar-gold/40 text-bazar-gold text-xs font-bold tracking-wider hover:bg-bazar-gold/10 transition-colors"
+                  >
+                    <Moon className="w-4 h-4" />
+                    GUARDIÃO DO BAZAR
                   </Link>
                 </div>
 

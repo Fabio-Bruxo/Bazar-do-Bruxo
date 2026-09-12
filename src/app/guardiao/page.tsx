@@ -153,7 +153,6 @@ Como posso iluminar seus passos hoje? Digite o *número* da opção desejada:
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-serif font-bold text-sm tracking-wide text-white">O Guardião do Bazar</h2>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-bazar-gold/10 text-bazar-gold border border-bazar-gold/20">Sem IA Paga</span>
               </div>
               <p className="text-[11px] text-gray-400">
                 {botMode === 'BOT' ? '🟢 Operação Automatizada Ativa' : '🟡 Modo Atendente Humano (Silenciado)'}
