@@ -3,15 +3,9 @@ import { ALL_INITIAL_PRODUCTS } from '@/data/db';
 import { memoryStore, recordAuditLog } from '@/lib/db';
 import { Product } from '@/types';
 
-let isProductsSeeded = false;
+let isProductsSeeded = true;
 
 function getLiveProducts(): Product[] {
-  if (!isProductsSeeded) {
-    if (memoryStore.products.size === 0) {
-      ALL_INITIAL_PRODUCTS.forEach((p) => memoryStore.products.set(p.id, p));
-    }
-    isProductsSeeded = true;
-  }
   return Array.from(memoryStore.products.values());
 }
 
@@ -154,6 +148,20 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const ids = searchParams.get('ids');
+    const all = searchParams.get('all');
+
+    if (all === 'true') {
+      const prevCount = memoryStore.products.size;
+      memoryStore.products.clear();
+      await recordAuditLog({
+        userId: 'admin-fabinho',
+        eventType: 'ALL_PRODUCTS_CLEARED',
+        targetEntity: 'catalog',
+        targetId: 'all',
+        previousValue: { count: prevCount },
+      });
+      return NextResponse.json({ success: true, count: 0, message: 'Todos os produtos foram removidos com sucesso.' });
+    }
 
     if (!id && !ids) {
       return NextResponse.json({ success: false, error: 'Product ID or IDs required' }, { status: 400 });

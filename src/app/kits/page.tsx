@@ -12,7 +12,7 @@ export default function KitsPage() {
     <CatalogView
       title="KITS RITUAIS PRONTOS"
       subtitle="Conjuntos completos com minerais, velas botânicas, incensos e manuais rituais para presentear ou consagrar seu espaço."
-      initialProducts={INITIAL_KITS}
+      initialProducts={[]}
       currentCategorySlug="kits"
     />
   );

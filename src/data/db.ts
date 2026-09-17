@@ -101,11 +101,8 @@ const ADDITIONAL_SPECIAL_PRODUCTS: Product[] = [
   },
 ];
 
-export const ALL_INITIAL_PRODUCTS: Product[] = [
-  ...INITIAL_PRODUCTS,
-  ...INITIAL_KITS,
-  ...ADDITIONAL_SPECIAL_PRODUCTS,
-];
+// Catálogo limpo e zerado: nenhum produto pré-carregado ou ilusório. O administrador cadastra livremente.
+export const ALL_INITIAL_PRODUCTS: Product[] = [];
 
 // Dados de configuração de loja (Settings)
 export interface StoreSettings {
@@ -145,25 +142,27 @@ export const INITIAL_LEADS: Lead[] = [];
 // Funções de gerenciamento dinâmico do catálogo em tempo real
 export function getStoredProducts(): Product[] {
   if (typeof window === 'undefined') {
-    return ALL_INITIAL_PRODUCTS;
+    return [];
   }
   try {
+    // Purga imediata de dados mock legados na transição para catálogo limpo do usuário
+    if (!localStorage.getItem('bazar_catalog_clean_v2')) {
+      localStorage.setItem('bazar_catalog_clean_v2', 'true');
+      localStorage.setItem('bazar_catalog_products', JSON.stringify([]));
+      return [];
+    }
+
     const saved = localStorage.getItem('bazar_catalog_products');
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
         return parsed;
       }
-    } else {
-      // Primeira inicialização: persiste o catálogo inicial no localStorage
-      try {
-        localStorage.setItem('bazar_catalog_products', JSON.stringify(ALL_INITIAL_PRODUCTS));
-      } catch (e) {}
     }
   } catch (e) {
     console.warn('Erro ao ler produtos do localStorage:', e);
   }
-  return ALL_INITIAL_PRODUCTS;
+  return [];
 }
 
 export function saveStoredProducts(products: Product[]): void {

@@ -241,6 +241,7 @@ export default function AdminProductsPage() {
   // Seleção Múltipla de Produtos
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBatchDeleteModalOpen, setIsBatchDeleteModalOpen] = useState(false);
+  const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -367,15 +368,42 @@ export default function AdminProductsPage() {
   };
 
   // --- EXCLUSÃO EM MASSA ---
-  const handleBatchDelete = () => {
+  const handleBatchDelete = async () => {
     if (selectedIds.length === 0) return;
-    const updatedList = products.filter((p) => !selectedIds.includes(p.id));
     const count = selectedIds.length;
+    const isDeletingAll = selectedIds.length >= products.length;
+    const idsToDelete = [...selectedIds];
+    const updatedList = products.filter((p) => !idsToDelete.includes(p.id));
     setProducts(updatedList);
     saveStoredProducts(updatedList);
     setSelectedIds([]);
     setIsBatchDeleteModalOpen(false);
     showNotification(`${count} produto(s) removido(s) do catálogo com sucesso.`);
+
+    try {
+      if (isDeletingAll) {
+        await fetch('/api/products?all=true', { method: 'DELETE' });
+      } else {
+        await fetch(`/api/products?ids=${idsToDelete.join(',')}`, { method: 'DELETE' });
+      }
+    } catch (err) {
+      console.warn('API batch delete error:', err);
+    }
+  };
+
+  // --- LIMPAR TODO O CATÁLOGO ---
+  const handleClearAllProducts = async () => {
+    setProducts([]);
+    saveStoredProducts([]);
+    setSelectedIds([]);
+    setIsClearAllModalOpen(false);
+    showNotification('Catálogo completamente zerado. Nenhum produto ativo.');
+
+    try {
+      await fetch('/api/products?all=true', { method: 'DELETE' });
+    } catch (err) {
+      console.warn('API clear error:', err);
+    }
   };
 
   // --- CRIAÇÃO E EDIÇÃO ---
@@ -624,6 +652,16 @@ export default function AdminProductsPage() {
 
         {/* Botões de Ação */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {products.length > 0 && (
+            <button
+              onClick={() => setIsClearAllModalOpen(true)}
+              className="px-3.5 py-2.5 bg-rose-950/50 hover:bg-rose-900/80 border border-rose-500/40 text-rose-300 hover:text-white font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow"
+              title="Excluir todos os produtos e zerar o catálogo"
+            >
+              <Trash2 className="w-4 h-4 text-rose-400" />
+              <span>Zerar Catálogo</span>
+            </button>
+          )}
           <button
             onClick={() => handleOpenCreateModal(false)}
             className="px-4 py-2.5 bg-bazar-gold hover:bg-bazar-gold-light text-bazar-charcoal font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-mystic-gold transition-all"
@@ -966,6 +1004,28 @@ export default function AdminProductsPage() {
                       </tr>
                     );
                   })}
+                  {filteredProducts.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="py-20 text-center">
+                        <div className="max-w-md mx-auto space-y-3">
+                          <Package className="w-12 h-12 text-bazar-gold/30 mx-auto" />
+                          <h3 className="font-mystic text-base font-bold text-bazar-parchment">
+                            Nenhum produto cadastrado no catálogo
+                          </h3>
+                          <p className="text-xs text-bazar-parchment/60 leading-relaxed">
+                            O catálogo está 100% limpo, sem produtos mock ou de teste. Clique no botão abaixo para adicionar seus novos produtos.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCreateModal(false)}
+                            className="mt-3 inline-flex items-center gap-1.5 px-5 py-2.5 bg-bazar-gold hover:bg-bazar-gold-light text-bazar-black font-bold text-xs rounded-xl shadow-md transition"
+                          >
+                            <Plus className="w-4 h-4" /> Cadastrar Primeiro Produto
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1412,6 +1472,40 @@ export default function AdminProductsPage() {
                 className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-rose-900/40"
               >
                 Sim, Excluir {selectedIds.length} Itens
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMAÇÃO DE ZERAR / LIMPAR TODO O CATÁLOGO */}
+      {isClearAllModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#180f24] border-2 border-rose-600 rounded-3xl max-w-md w-full p-6 text-center space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="w-16 h-16 rounded-full bg-rose-950/80 border-2 border-rose-500 flex items-center justify-center text-rose-400 mx-auto">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <h3 className="font-mystic text-xl font-bold text-white uppercase tracking-wider">
+              Zerar Todo o Catálogo?
+            </h3>
+            <p className="text-xs text-gray-300 leading-relaxed">
+              Você tem certeza de que deseja <strong className="text-rose-400 font-bold">excluir todos os produtos</strong>? 
+              A loja ficará completamente limpa, sem produto nenhum, pronta para você cadastrar seus novos produtos do zero.
+            </p>
+            <div className="flex items-center justify-center gap-3 pt-3">
+              <button
+                type="button"
+                onClick={() => setIsClearAllModalOpen(false)}
+                className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded-xl text-xs transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAllProducts}
+                className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-rose-900/50 flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" /> Sim, Limpar Tudo Agora
               </button>
             </div>
           </div>
