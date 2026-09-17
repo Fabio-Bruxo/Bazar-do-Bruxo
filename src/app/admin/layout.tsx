@@ -86,46 +86,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-bazar-parchment font-medium hidden sm:inline">{user.email}</span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs overflow-x-auto py-1">
-            <Link
-              href="/admin"
-              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/admin/produtos"
-              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
-            >
-              Produtos
-            </Link>
-            <Link
-              href="/admin/pedidos"
-              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
-            >
-              Pedidos
-            </Link>
-            <Link
-              href="/admin/financeiro"
-              className="text-bazar-gold hover:text-bazar-gold-light transition-colors font-bold flex items-center gap-1"
-            >
-              <span>Financeiro</span>
-            </Link>
-            <Link
-              href="/admin/tickets"
-              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
-            >
-              Tickets
-            </Link>
-            <Link
-              href="/admin/excecoes"
-              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
-            >
-              Atenção
-            </Link>
+          <div className="flex items-center gap-2 text-xs overflow-x-auto py-1">
+            {[
+              { href: '/admin', label: 'Dashboard' },
+              { href: '/admin/produtos', label: 'Produtos' },
+              { href: '/admin/pedidos', label: 'Pedidos' },
+              { href: '/admin/dropshipping', label: 'Dropshipping' },
+              { href: '/admin/upsell', label: 'Upseller' },
+              { href: '/admin/financeiro', label: 'Financeiro' },
+              { href: '/admin/tickets', label: 'Tickets' },
+              { href: '/admin/excecoes', label: 'Atenção' },
+            ].map((item) => {
+              const isActive =
+                item.href === '/admin'
+                  ? pathname === '/admin'
+                  : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-2.5 py-1 rounded-lg text-xs transition-all whitespace-nowrap font-medium ${
+                    isActive
+                      ? 'bg-bazar-gold/20 text-bazar-gold border border-bazar-gold/40 font-bold shadow-sm'
+                      : 'text-bazar-parchment/70 hover:text-bazar-gold hover:bg-bazar-charcoal-border/30'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
             <Link
               href="/"
-              className="text-bazar-gold/80 hover:underline flex items-center gap-1"
+              className="text-bazar-gold/80 hover:text-bazar-gold hover:underline flex items-center gap-1 pl-2 border-l border-bazar-charcoal-border ml-1 whitespace-nowrap"
               target="_blank"
             >
               Loja ↗

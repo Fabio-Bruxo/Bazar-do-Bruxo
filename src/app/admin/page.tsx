@@ -84,6 +84,18 @@ export default function AdminDashboardPage() {
             Dropshipping & Fornecedores
           </Link>
           <Link
+            href="/admin/upsell"
+            className="px-3.5 py-2 bg-bazar-charcoal-light border border-bazar-charcoal-border hover:border-bazar-gold text-bazar-parchment rounded-xl transition-colors font-medium"
+          >
+            Upseller & Ofertas
+          </Link>
+          <Link
+            href="/admin/financeiro"
+            className="px-3.5 py-2 bg-bazar-charcoal-light border border-bazar-charcoal-border hover:border-bazar-gold text-bazar-parchment rounded-xl transition-colors font-medium"
+          >
+            Central Financeira
+          </Link>
+          <Link
             href="/admin/leads"
             className="px-3.5 py-2 bg-bazar-charcoal-light border border-bazar-charcoal-border hover:border-bazar-gold text-bazar-parchment rounded-xl transition-colors font-medium"
           >
