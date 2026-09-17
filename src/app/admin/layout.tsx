@@ -86,12 +86,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-bazar-parchment font-medium hidden sm:inline">{user.email}</span>
           </div>
 
-          <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-4 text-xs overflow-x-auto py-1">
+            <Link
+              href="/admin"
+              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
+            >
+              Dashboard
+            </Link>
             <Link
               href="/admin/produtos"
               className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
             >
-              Produtos & Estoque
+              Produtos
             </Link>
             <Link
               href="/admin/pedidos"
@@ -100,11 +106,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Pedidos
             </Link>
             <Link
+              href="/admin/financeiro"
+              className="text-bazar-gold hover:text-bazar-gold-light transition-colors font-bold flex items-center gap-1"
+            >
+              <span>Financeiro</span>
+            </Link>
+            <Link
+              href="/admin/tickets"
+              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
+            >
+              Tickets
+            </Link>
+            <Link
+              href="/admin/excecoes"
+              className="text-bazar-parchment/70 hover:text-bazar-gold transition-colors font-semibold"
+            >
+              Atenção
+            </Link>
+            <Link
               href="/"
-              className="text-bazar-gold hover:underline flex items-center gap-1"
+              className="text-bazar-gold/80 hover:underline flex items-center gap-1"
               target="_blank"
             >
-              Ver Loja ↗
+              Loja ↗
             </Link>
           </div>
         </div>

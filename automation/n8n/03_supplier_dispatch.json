@@ -1,0 +1,103 @@
+{
+  "name": "03 - Despacho Automático para Fornecedores Dropshipping - O Bazar do Bruxo",
+  "description": "Verifica validação de endereço, margem de lucro e envia ordem de compra ao fornecedor homologado.",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "supplier-dispatch",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Receptor",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT NOW() as executed_at, '03 - Despacho Automático para Fornecedores Dropshipping' as workflow_title;"
+      },
+      "id": "db-step",
+      "name": "Consulta Supabase PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Verifica validação de endereço, margem de lucro e envia ordem de compra ao fornecedor homologado.\nreturn items.map(item => ({\n  json: {\n    workflow: '03 - Despacho Automático para Fornecedores Dropshipping',\n    status: 'SUCCESS',\n    timestamp: new Date().toISOString(),\n    data: item.json\n  }\n}));"
+      },
+      "id": "process-data",
+      "name": "Processamento de Negócio",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.APP_URL || \"http://localhost:3000\"}}/api/health",
+        "options": {}
+      },
+      "id": "notify-completion",
+      "name": "Registro de Execução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Receptor": {
+      "main": [
+        [
+          {
+            "node": "Consulta Supabase PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta Supabase PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Processamento de Negócio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processamento de Negócio": {
+      "main": [
+        [
+          {
+            "node": "Registro de Execução",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  }
+}

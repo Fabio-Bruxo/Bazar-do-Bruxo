@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { memoryStore, recordAuditLog, query } from '@/lib/db';
 import { DropshippingService, DropshipOrderPayload } from './dropshippingService';
+import { FinancialLedgerService } from './financialLedgerService';
 
 export interface MercadoPagoWebhookNotification {
   id: number | string;
@@ -177,7 +178,29 @@ export class PaymentService {
       },
     });
 
-    // 4. Se o pagamento foi aprovado e o pedido possui dropshipping, inicia despacho automático
+    // 4. Registro no Livro-Razão Financeiro (Financial Ledger)
+    if (isApproved) {
+      try {
+        const suppCost = paymentData.dropshipPayload?.items?.reduce(
+          (acc: number, it: any) => acc + ((it.expectedCost || 0) * (it.quantity || 1)),
+          0
+        ) || 0;
+
+        await FinancialLedgerService.processOrderPaymentApproval({
+          orderId: paymentData.orderId,
+          orderCode: paymentData.orderCode,
+          paymentId,
+          totalAmount: paymentData.amount,
+          hasDropshipping: Boolean(paymentData.dropshipPayload),
+          supplierCost: suppCost,
+          supplierId: paymentData.dropshipPayload?.items?.[0]?.supplierId,
+        });
+      } catch (err: any) {
+        console.warn('[LEDGER WARNING] Erro ao registrar partidas do ledger financeiro:', err.message);
+      }
+    }
+
+    // 5. Se o pagamento foi aprovado e o pedido possui dropshipping, inicia despacho automático
     if (isApproved && paymentData.dropshipPayload) {
       paymentData.dropshipPayload.paymentStatus = 'PAID';
       await DropshippingService.processDropshippingOrder(paymentData.dropshipPayload);

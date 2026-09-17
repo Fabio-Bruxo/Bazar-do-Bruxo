@@ -9,7 +9,7 @@ const pool = new Pool({
 });
 
 // Flag indicando se o banco real está ativo ou se usaremos store em memória de demonstração
-let isDbConnected = false;
+export let isDbConnected = false;
 
 pool.on('connect', () => {
   isDbConnected = true;
@@ -38,6 +38,10 @@ const memoryStore = {
   tickets: [] as any[],
   conversations: new Map<string, any>(),
   messages: [] as any[],
+  financialLedger: [] as any[],
+  refunds: [] as any[],
+  chargebacks: [] as any[],
+  supplierSettlements: [] as any[],
 };
 
 export async function query(text: string, params?: any[]) {
@@ -89,6 +93,7 @@ export async function recordAuditLog(event: {
   previousValue?: any;
   newValue?: any;
   ipAddress?: string;
+  details?: any;
 }) {
   const logEntry = {
     id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,

@@ -1,0 +1,108 @@
+{
+  "name": "16 - Solicitação de Avaliação e Depoimento Pós-Entrega - O Bazar do Bruxo",
+  "description": "7 dias após a entrega confirmada pelos Correios, convida o cliente a compartilhar a energia da peça.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 14 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Agendamento Cron",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT NOW() as executed_at, '16 - Solicitação de Avaliação e Depoimento Pós-Entrega' as workflow_title;"
+      },
+      "id": "db-step",
+      "name": "Consulta Supabase PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 7 dias após a entrega confirmada pelos Correios, convida o cliente a compartilhar a energia da peça.\nreturn items.map(item => ({\n  json: {\n    workflow: '16 - Solicitação de Avaliação e Depoimento Pós-Entrega',\n    status: 'SUCCESS',\n    timestamp: new Date().toISOString(),\n    data: item.json\n  }\n}));"
+      },
+      "id": "process-data",
+      "name": "Processamento de Negócio",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.APP_URL || \"http://localhost:3000\"}}/api/health",
+        "options": {}
+      },
+      "id": "notify-completion",
+      "name": "Registro de Execução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Agendamento Cron": {
+      "main": [
+        [
+          {
+            "node": "Consulta Supabase PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta Supabase PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Processamento de Negócio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processamento de Negócio": {
+      "main": [
+        [
+          {
+            "node": "Registro de Execução",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  }
+}

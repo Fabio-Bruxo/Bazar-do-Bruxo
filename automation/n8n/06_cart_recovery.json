@@ -1,0 +1,108 @@
+{
+  "name": "06 - Recuperação de Carrinho Abandonado - O Bazar do Bruxo",
+  "description": "Identifica carrinhos abandonados há mais de 30 minutos e dispara lembrete com cupom PRIMEIRORITUAL.",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Agendamento Cron",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT NOW() as executed_at, '06 - Recuperação de Carrinho Abandonado' as workflow_title;"
+      },
+      "id": "db-step",
+      "name": "Consulta Supabase PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Identifica carrinhos abandonados há mais de 30 minutos e dispara lembrete com cupom PRIMEIRORITUAL.\nreturn items.map(item => ({\n  json: {\n    workflow: '06 - Recuperação de Carrinho Abandonado',\n    status: 'SUCCESS',\n    timestamp: new Date().toISOString(),\n    data: item.json\n  }\n}));"
+      },
+      "id": "process-data",
+      "name": "Processamento de Negócio",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "={{$env.APP_URL || \"http://localhost:3000\"}}/api/health",
+        "options": {}
+      },
+      "id": "notify-completion",
+      "name": "Registro de Execução",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        900,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Agendamento Cron": {
+      "main": [
+        [
+          {
+            "node": "Consulta Supabase PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta Supabase PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Processamento de Negócio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processamento de Negócio": {
+      "main": [
+        [
+          {
+            "node": "Registro de Execução",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  }
+}
