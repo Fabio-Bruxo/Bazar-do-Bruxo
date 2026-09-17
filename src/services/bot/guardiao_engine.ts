@@ -154,7 +154,7 @@ export class GuardiaoEngine {
               .join('\n') +
             `\nGostaria de mais opções? Digite outro valor ou *menu*.`;
         } else {
-          reply = `Nossas opções mais acessíveis começam a partir de R$ 32,90 (Incenso de Sálvia & Lavanda) e R$ 38,00 (Selenita Branca).\n\nDeseja ver esses produtos? Digite *1*.`;
+          reply = `🎯 Para o orçamento de *R$ ${budget.toFixed(2)}*, o catálogo está sendo renovado com novas criações artesanais pelo nosso guardião.\n\nDeseja falar com nosso atendimento humano para encomendas especiais? Digite *7*.`;
         }
         break;
       }

@@ -31,17 +31,17 @@ export default function CheckoutPage() {
 
   // Dados do formulário (Autopreenchimento se o usuário estiver logado)
   const [customer, setCustomer] = useState({
-    name: user?.name || 'Helena Ravena',
-    email: user?.email || 'helena.ravena@exemplo.com',
-    phone: user?.phone || '(11) 98765-4321',
-    document: user?.document || '123.456.789-00',
-    zipCode: user?.address.zipCode || '01310-100',
-    street: user?.address.street || 'Avenida Paulista',
-    number: user?.address.number || '1500',
-    complement: user?.address.complement || 'Apt 82',
-    neighborhood: user?.address.neighborhood || 'Bela Vista',
-    city: user?.address.city || 'São Paulo',
-    state: user?.address.state || 'SP',
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    document: user?.document || '',
+    zipCode: user?.address?.zipCode || '',
+    street: user?.address?.street || '',
+    number: user?.address?.number || '',
+    complement: user?.address?.complement || '',
+    neighborhood: user?.address?.neighborhood || '',
+    city: user?.address?.city || '',
+    state: user?.address?.state || '',
   });
 
   useEffect(() => {

@@ -326,71 +326,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* BLOCO 7 — PROVA SOCIAL: QUEM JÁ ENCONTROU O BAZAR */}
+      {/* BLOCO 7 — PROVA SOCIAL VERIFICADA */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
+        <div className="text-center p-8 rounded-2xl bg-bazar-charcoal-light/40 border border-bazar-charcoal-border/60">
           <span className="text-xs font-bold tracking-widest text-bazar-gold uppercase block mb-1">
-            Experiências Reais
+            Transparência & Integridade
           </span>
-          <h2 className="font-mystic text-2xl sm:text-3xl font-bold text-bazar-parchment uppercase">
-            QUEM JÁ ENCONTROU O BAZAR
+          <h2 className="font-mystic text-xl sm:text-2xl font-bold text-bazar-parchment uppercase">
+            AVALIAÇÕES REAIS DE COMPRADORES
           </h2>
-          <p className="text-xs text-bazar-parchment/60 mt-1 max-w-md mx-auto font-editorial text-sm">
-            Depoimentos espontâneos de quem recebeu nossos achados em casa.
+          <p className="text-xs text-bazar-parchment/60 mt-2 max-w-md mx-auto font-editorial text-sm">
+            Todas as avaliações no Bazar do Bruxo são registradas exclusivamente após a entrega confirmada de cada pedido.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-bazar-charcoal-light/60 border border-bazar-charcoal-border hover:border-bazar-gold/30 transition-colors flex flex-col justify-between">
-            <div>
-              <div className="flex text-bazar-gold mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-xs text-bazar-parchment/80 italic font-editorial text-sm leading-relaxed mb-4">
-                &ldquo;A caixa do Kit Bruxo Iniciante chegou com um cheirinho de ervas e lavanda que perfumou a sala inteira. A ametista é muito mais bonita do que na foto, com uma energia de paz surreal.&rdquo;
-              </p>
-            </div>
-            <div className="pt-3 border-t border-bazar-charcoal-border/50 flex items-center justify-between text-xs">
-              <span className="font-bold text-bazar-parchment">Mariana S.</span>
-              <span className="text-[10px] text-bazar-gold/70">Curitiba, PR</span>
-            </div>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-bazar-charcoal-light/60 border border-bazar-charcoal-border hover:border-bazar-gold/30 transition-colors flex flex-col justify-between">
-            <div>
-              <div className="flex text-bazar-gold mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-xs text-bazar-parchment/80 italic font-editorial text-sm leading-relaxed mb-4">
-                &ldquo;Fiz o quiz despretensiosamente e saiu a Turmalina Negra. Comprei e virou minha companheira de mesa no home office. O cuidado na embalagem e o bilhete feito à mão me conquistaram.&rdquo;
-              </p>
-            </div>
-            <div className="pt-3 border-t border-bazar-charcoal-border/50 flex items-center justify-between text-xs">
-              <span className="font-bold text-bazar-parchment">Rodrigo T.</span>
-              <span className="text-[10px] text-bazar-gold/70">São Paulo, SP</span>
-            </div>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-bazar-charcoal-light/60 border border-bazar-charcoal-border hover:border-bazar-gold/30 transition-colors flex flex-col justify-between">
-            <div>
-              <div className="flex text-bazar-gold mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
-              </div>
-              <p className="text-xs text-bazar-parchment/80 italic font-editorial text-sm leading-relaxed mb-4">
-                &ldquo;Não sou de rituais complicados, mas a vela de canela e a selenita transformaram a hora de dormir da casa. É uma loja diferente de tudo, com alma verdadeira.&rdquo;
-              </p>
-            </div>
-            <div className="pt-3 border-t border-bazar-charcoal-border/50 flex items-center justify-between text-xs">
-              <span className="font-bold text-bazar-parchment">Larissa V.</span>
-              <span className="text-[10px] text-bazar-gold/70">Belo Horizonte, MG</span>
-            </div>
-          </div>
         </div>
       </section>
 

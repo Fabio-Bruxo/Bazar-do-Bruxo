@@ -4,102 +4,8 @@ import { INITIAL_PRODUCTS } from './products';
 import { INITIAL_KITS } from './kits';
 import { INITIAL_ARTICLES } from './grimorio';
 
-// Produtos adicionais para demonstrar expressamente Dropshipping e Afiliados no MVP
-const ADDITIONAL_SPECIAL_PRODUCTS: Product[] = [
-  {
-    id: 'prod-afiliado-01',
-    slug: 'tarot-de-marelha-classico-grimorio-parceiro',
-    name: 'Tarô de Marselha Tradicional de Luxo (Edição de Colecionador)',
-    subtitle: 'O oráculo clássico em cartas douradas com livreto de interpretação',
-    price: 189.00,
-    costPrice: 0,
-    minAllowedPrice: 189.00,
-    pixDiscountPercent: 0,
-    maxInstallments: 6,
-    images: [
-      'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=1000&auto=format&fit=crop',
-    ],
-    category: 'Bruxaria',
-    categorySlug: 'bruxaria',
-    intentions: ['intuicao'],
-    stock: 999,
-    isAvailable: true,
-    type: 'afiliado',
-    commercialStatus: 'ativo',
-    affiliateUrl: 'https://amzn.to/exemplo-bazar-bruxo-tarot',
-    partnerName: 'Editora Arcanos & Livraria Parceira',
-    description: {
-      whatIs: 'Deck com as 78 lâminas do Tarô de Marselha tradicional, impresso em cartão 350g com acabamento fosco e bordas douradas reluzentes.',
-      whyItCalledYou: 'Para quem busca uma ferramenta clássica de estudo oracular e autoconhecimento visual.',
-      symbolism: 'Os 22 arcanos maiores e 56 menores representam os arquétipos perenes da jornada humana.',
-      howToUse: 'Embaralhe com intenção calma e faça tiragens de três cartas para reflexão diária.',
-    },
-    details: {
-      origin: 'Itália (Distribuição Brasil)',
-      material: 'Cartão especial plastificado de alta durabilidade',
-      dimensions: 'Cartas de 12cm x 7cm',
-      weight: '350g',
-      care: 'Guardar em bolsa de veludo ou estojo de madeira.',
-      notes: 'PRODUTO DE PARCEIRO CERTIFICADO: A compra e envio são operados diretamente pela livraria parceira oficial do Bazar.',
-    },
-    sku: 'AFIL-TAR-021',
-    relatedProductIds: ['prod-01', 'prod-19'],
-    upsellProductIds: ['prod-19'],
-    crossSellProductIds: ['prod-18'],
-    seoTitle: 'Tarô de Marselha Clássico de Colecionador | O Bazar do Bruxo',
-    seoDescription: 'Deck de luxo do Tarô de Marselha em parceria exclusiva. Compre com segurança na nossa loja parceira.',
-    rating: 4.9,
-    reviewCount: 65,
-  },
-  {
-    id: 'prod-drop-02',
-    slug: 'caldeirao-de-ferro-fundido-artesanal',
-    name: 'Caldeirão Místico de Ferro Fundido 500ml',
-    subtitle: 'Peça rústica pesada para queima segura de resinas e ervas secas',
-    price: 145.00,
-    costPrice: 58.00,
-    minAllowedPrice: 110.00,
-    pixDiscountPercent: 5,
-    maxInstallments: 6,
-    images: [
-      'https://images.unsplash.com/photo-1567696911980-2eed69a46042?q=80&w=1000&auto=format&fit=crop',
-    ],
-    category: 'Bruxaria',
-    categorySlug: 'bruxaria',
-    intentions: ['protecao', 'calma'],
-    stock: 15,
-    isAvailable: true,
-    type: 'dropshipping',
-    commercialStatus: 'ativo',
-    supplier: {
-      name: 'Fundição Artesanal Mantiqueira (Dropshipping Nacional)',
-      leadTimeDays: 7,
-      shippingCost: 22.00,
-    },
-    description: {
-      whatIs: 'Caldeirão tradicional fundido em ferro maciço com três apoios estáveis e alça de metal para queima segura de defumações aromáticas e ervas secas.',
-      whyItCalledYou: 'Para ter uma base térmica ultra-segura e duradoura para o fogo sagrado das suas misturas de ervas aromáticas.',
-      symbolism: 'Símbolo ancestral da fertilidade, transformação e abrigo dos mistérios alquímicos.',
-      howToUse: 'Coloque uma camada de areia no fundo antes de acender carvão vegetal ou tochas de ervas.',
-    },
-    details: {
-      origin: 'Minas Gerais - Brasil',
-      material: '100% Ferro fundido maciço com cura atóxica',
-      dimensions: '10cm de altura x 11cm de diâmetro (Capacidade 500ml)',
-      weight: '1.4kg',
-      care: 'Secar imediatamente após lavar para não oxidar.',
-      notes: 'ENVIO DIRETO DA FUNDIÇÃO: Produzido e despachado sob demanda diretamente da forja artesanal com rastreio prioritário.',
-    },
-    sku: 'DROP-CAL-022',
-    relatedProductIds: ['prod-16', 'prod-18'],
-    upsellProductIds: ['prod-16'],
-    crossSellProductIds: ['prod-18'],
-    seoTitle: 'Caldeirão de Ferro Fundido Artesanal | O Bazar do Bruxo',
-    seoDescription: 'Caldeirão de ferro fundido rústico com três pés para queima de ervas aromáticas e rituais.',
-    rating: 5.0,
-    reviewCount: 28,
-  },
-];
+// Produtos adicionais limpos
+const ADDITIONAL_SPECIAL_PRODUCTS: Product[] = [];
 
 // Catálogo limpo e zerado: nenhum produto pré-carregado ou ilusório. O administrador cadastra livremente.
 export const ALL_INITIAL_PRODUCTS: Product[] = [];
@@ -145,10 +51,29 @@ export function getStoredProducts(): Product[] {
     return [];
   }
   try {
-    // Purga imediata de dados mock legados na transição para catálogo limpo do usuário
-    if (!localStorage.getItem('bazar_catalog_clean_v2')) {
-      localStorage.setItem('bazar_catalog_clean_v2', 'true');
+    // Purga imediata e irrestrita de todos os dados fictícios locais (pedidos, leads, carrinho, contas mock)
+    if (!localStorage.getItem('bazar_zeroed_v3_clean')) {
+      localStorage.setItem('bazar_zeroed_v3_clean', 'true');
       localStorage.setItem('bazar_catalog_products', JSON.stringify([]));
+      localStorage.setItem('bazar_orders', JSON.stringify([]));
+      localStorage.setItem('bazar_leads', JSON.stringify([]));
+      localStorage.setItem('bazar_cart_items', JSON.stringify([]));
+      localStorage.removeItem('bazar_cart');
+      localStorage.removeItem('bazar_coupon');
+      localStorage.removeItem('bazar_registered_users');
+      
+      // Manter SOMENTE a conta de administrador se estiver logado
+      const currentUser = localStorage.getItem('bazar_auth_user');
+      if (currentUser) {
+        try {
+          const u = JSON.parse(currentUser);
+          if (u.email !== 'fabinhojr6336@gmail.com') {
+            localStorage.removeItem('bazar_auth_user');
+          }
+        } catch {
+          localStorage.removeItem('bazar_auth_user');
+        }
+      }
       return [];
     }
 

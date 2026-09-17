@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx tests/run_all.ts",
-    "seed": "tsx scripts/seed_database.ts"
+    "seed": "tsx scripts/seed_database.ts",
+    "wipe": "tsx scripts/wipe_data.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
