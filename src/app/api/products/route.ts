@@ -3,9 +3,14 @@ import { ALL_INITIAL_PRODUCTS } from '@/data/db';
 import { memoryStore, recordAuditLog } from '@/lib/db';
 import { Product } from '@/types';
 
+let isProductsSeeded = false;
+
 function getLiveProducts(): Product[] {
-  if (memoryStore.products.size === 0) {
-    ALL_INITIAL_PRODUCTS.forEach((p) => memoryStore.products.set(p.id, p));
+  if (!isProductsSeeded) {
+    if (memoryStore.products.size === 0) {
+      ALL_INITIAL_PRODUCTS.forEach((p) => memoryStore.products.set(p.id, p));
+    }
+    isProductsSeeded = true;
   }
   return Array.from(memoryStore.products.values());
 }
@@ -148,25 +153,34 @@ export async function DELETE(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const ids = searchParams.get('ids');
 
-    if (!id) {
-      return NextResponse.json({ success: false, error: 'Product ID is required' }, { status: 400 });
+    if (!id && !ids) {
+      return NextResponse.json({ success: false, error: 'Product ID or IDs required' }, { status: 400 });
     }
 
     getLiveProducts();
-    const existing = memoryStore.products.get(id);
 
+    if (ids) {
+      const idList = ids.split(',').map((s) => s.trim()).filter(Boolean);
+      for (const targetId of idList) {
+        memoryStore.products.delete(targetId);
+      }
+      return NextResponse.json({ success: true, count: idList.length });
+    }
+
+    const existing = memoryStore.products.get(id!);
     if (!existing) {
       return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
-    memoryStore.products.delete(id);
+    memoryStore.products.delete(id!);
 
     await recordAuditLog({
       userId: 'admin-fabinho',
       eventType: 'PRODUCT_DELETED',
       targetEntity: 'product',
-      targetId: id,
+      targetId: id!,
       previousValue: existing,
     });
 

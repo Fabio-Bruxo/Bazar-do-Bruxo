@@ -2,10 +2,17 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { memoryStore } from '@/lib/db';
 import ProductDetailClient from './ProductDetailClient';
 
 interface Props {
   params: { slug: string };
+}
+
+function findProductBySlug(slug: string) {
+  const fromMemory = Array.from(memoryStore.products.values()).find((p: any) => p.slug === slug);
+  if (fromMemory) return fromMemory;
+  return ALL_INITIAL_PRODUCTS.find((p) => p.slug === slug);
 }
 
 export async function generateStaticParams() {
@@ -15,7 +22,7 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = ALL_INITIAL_PRODUCTS.find((p) => p.slug === params.slug);
+  const product = findProductBySlug(params.slug);
 
   if (!product) {
     return {
@@ -42,19 +49,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default function ProductPage({ params }: Props) {
-  const product = ALL_INITIAL_PRODUCTS.find((p) => p.slug === params.slug);
+  const product = findProductBySlug(params.slug);
 
   if (!product) {
     notFound();
   }
 
   // Produtos relacionados e upsell
-  const relatedProducts = ALL_INITIAL_PRODUCTS.filter((p) =>
-    product.relatedProductIds.includes(p.id)
+  const allProds = memoryStore.products.size > 0 
+    ? Array.from(memoryStore.products.values()) 
+    : ALL_INITIAL_PRODUCTS;
+
+  const relatedProducts = allProds.filter((p: any) =>
+    product.relatedProductIds?.includes(p.id)
   );
 
-  const upsellProducts = ALL_INITIAL_PRODUCTS.filter((p) =>
-    product.upsellProductIds.includes(p.id)
+  const upsellProducts = allProds.filter((p: any) =>
+    product.upsellProductIds?.includes(p.id)
   );
 
   // Schema.org JSON-LD para SEO avançado

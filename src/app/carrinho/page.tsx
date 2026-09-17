@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   ShoppingBag, 
@@ -15,8 +15,9 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/utils/currency';
-import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { ALL_INITIAL_PRODUCTS, getStoredProducts } from '@/data/db';
 import ProductCard from '@/components/ProductCard';
+import { Product } from '@/types';
 
 export default function CarrinhoPage() {
   const {
@@ -35,6 +36,14 @@ export default function CarrinhoPage() {
 
   const [couponInput, setCouponInput] = useState('');
   const [feedback, setFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [catalogProducts, setCatalogProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setCatalogProducts(getStoredProducts());
+    const handleUpdate = () => setCatalogProducts(getStoredProducts());
+    window.addEventListener('bazar_catalog_updated', handleUpdate);
+    return () => window.removeEventListener('bazar_catalog_updated', handleUpdate);
+  }, []);
 
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +54,8 @@ export default function CarrinhoPage() {
 
   const progressPercent = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
 
-  const crossSellProducts = ALL_INITIAL_PRODUCTS.filter(
-    (p) => !items.some((i) => i.product.id === p.id)
+  const crossSellProducts = catalogProducts.filter(
+    (p) => p.commercialStatus !== 'inativo' && !items.some((i) => i.product.id === p.id)
   ).slice(0, 4);
 
   return (

@@ -49,6 +49,7 @@ export interface Product {
   intentions: Intention[];
   stock: number;
   isAvailable: boolean;
+  isFeatured?: boolean;
   type: ProductType;
   commercialStatus: CommercialStatus;
   

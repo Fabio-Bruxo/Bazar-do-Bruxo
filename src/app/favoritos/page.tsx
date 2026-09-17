@@ -1,15 +1,24 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Heart, Sparkles } from 'lucide-react';
 import { useWishlist } from '@/context/WishlistContext';
-import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { getStoredProducts, Product } from '@/data/db';
 import ProductCard from '@/components/ProductCard';
 
 export default function FavoritosPage() {
   const { wishlist } = useWishlist();
-  const favoriteProducts = ALL_INITIAL_PRODUCTS.filter((p) => wishlist.includes(p.id));
+  const [catalog, setCatalog] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setCatalog(getStoredProducts());
+    const handleUpdate = () => setCatalog(getStoredProducts());
+    window.addEventListener('bazar_catalog_updated', handleUpdate);
+    return () => window.removeEventListener('bazar_catalog_updated', handleUpdate);
+  }, []);
+
+  const favoriteProducts = catalog.filter((p) => wishlist.includes(p.id));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

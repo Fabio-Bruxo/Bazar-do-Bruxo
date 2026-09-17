@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
@@ -15,7 +15,7 @@ import {
   Moon
 } from 'lucide-react';
 import { QUIZ_QUESTIONS, QUIZ_RESULTS } from '@/data/quiz';
-import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { ALL_INITIAL_PRODUCTS, getStoredProducts, Product } from '@/data/db';
 import { useCart } from '@/context/CartContext';
 import { trackEvent } from '@/utils/analytics';
 import { formatCurrency } from '@/utils/currency';
@@ -30,6 +30,11 @@ export default function QuizPage() {
   const [leadEmail, setLeadEmail] = useState('');
   const [leadSaved, setLeadSaved] = useState(false);
   const [resultKey, setResultKey] = useState<string>('ametista');
+  const [catalog, setCatalog] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setCatalog(getStoredProducts());
+  }, []);
 
   const { addToCart } = useCart();
 
@@ -114,8 +119,9 @@ export default function QuizPage() {
   };
 
   const resultData = QUIZ_RESULTS[resultKey] || QUIZ_RESULTS['ametista'];
-  const suggestedProduct = ALL_INITIAL_PRODUCTS.find((p) => p.slug === resultData.suggestedProductSlug);
-  const secondaryProduct = ALL_INITIAL_PRODUCTS.find((p) => p.slug === resultData.secondaryProductSlug);
+  const activeCatalog = catalog.length > 0 ? catalog : ALL_INITIAL_PRODUCTS;
+  const suggestedProduct = activeCatalog.find((p) => p.slug === resultData.suggestedProductSlug) || activeCatalog[0];
+  const secondaryProduct = activeCatalog.find((p) => p.slug === resultData.secondaryProductSlug) || activeCatalog[1];
 
   // Opção selecionada para esta pergunta (pendente ou já confirmada ao voltar)
   const currentSelected = pendingAnswer ?? selectedAnswers[currentQuestion.id] ?? null;

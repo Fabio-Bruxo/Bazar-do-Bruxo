@@ -13,7 +13,7 @@ import {
   ArrowRight,
   PackageCheck
 } from 'lucide-react';
-import { ALL_INITIAL_PRODUCTS, INITIAL_ORDERS } from '@/data/db';
+import { ALL_INITIAL_PRODUCTS, INITIAL_ORDERS, getStoredProducts } from '@/data/db';
 import { Order, Product } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 import { trackEvent } from '@/utils/analytics';
@@ -26,10 +26,12 @@ export default function OrderSuccessPage({ params }: Props) {
   const [order, setOrder] = useState<Order | null>(null);
   const [copiedPix, setCopiedPix] = useState(false);
   const [upsellAccepted, setUpsellAccepted] = useState(false);
+  const [catalog, setCatalog] = useState<Product[]>([]);
 
   const fakePixCode = '00020126580014br.gov.bcb.pix0136bazar-bruxo-pix-chave-aleatoria-9995204000053039865802BR5920O BAZAR DO BRUXO6009SAO PAULO62070503***6304ABCD';
 
   useEffect(() => {
+    setCatalog(getStoredProducts());
     try {
       const savedOrders: Order[] = JSON.parse(localStorage.getItem('bazar_orders') || '[]');
       const found = savedOrders.find((o) => o.id === params.orderId) || INITIAL_ORDERS[0];
@@ -47,9 +49,8 @@ export default function OrderSuccessPage({ params }: Props) {
   };
 
   // Produtos para o Upsell Pós-Compra (Itens de alta afinidade)
-  const upsellCandidates = ALL_INITIAL_PRODUCTS.filter(
-    (p) => p.id === 'prod-18' || p.id === 'prod-06'
-  );
+  const preferredUpsell = catalog.filter((p) => p.id === 'prod-18' || p.id === 'prod-06');
+  const upsellCandidates = preferredUpsell.length > 0 ? preferredUpsell : catalog.slice(0, 2);
 
   const handleAcceptUpsell = (product: Product) => {
     setUpsellAccepted(true);

@@ -1,4 +1,5 @@
 import { Product, Order, Lead, Article } from '@/types';
+export type { Product };
 import { INITIAL_PRODUCTS } from './products';
 import { INITIAL_KITS } from './kits';
 import { INITIAL_ARTICLES } from './grimorio';
@@ -148,13 +149,20 @@ export function getStoredProducts(): Product[] {
   }
   try {
     const saved = localStorage.getItem('bazar_catalog_products');
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
+    } else {
+      // Primeira inicialização: persiste o catálogo inicial no localStorage
+      try {
+        localStorage.setItem('bazar_catalog_products', JSON.stringify(ALL_INITIAL_PRODUCTS));
+      } catch (e) {}
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Erro ao ler produtos do localStorage:', e);
+  }
   return ALL_INITIAL_PRODUCTS;
 }
 
@@ -163,7 +171,9 @@ export function saveStoredProducts(products: Product[]): void {
   try {
     localStorage.setItem('bazar_catalog_products', JSON.stringify(products));
     window.dispatchEvent(new Event('bazar_catalog_updated'));
-  } catch (e) {}
+  } catch (e) {
+    console.error('Falha ao salvar produtos no localStorage (possível estouro de cota):', e);
+  }
 }
 
 export function getStoreSettings(): StoreSettings {

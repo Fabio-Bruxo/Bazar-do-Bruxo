@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Clock, BookOpen, ArrowLeft, HelpCircle, Sparkles } from 'lucide-react';
 import { INITIAL_ARTICLES } from '@/data/grimorio';
 import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { memoryStore } from '@/lib/db';
 import ProductCard from '@/components/ProductCard';
 
 interface Props {
@@ -40,7 +41,10 @@ export default function ArticlePage({ params }: Props) {
   }
 
   // Produtos mencionados no artigo
-  const relatedProducts = ALL_INITIAL_PRODUCTS.filter((p) =>
+  const allProds = memoryStore.products.size > 0
+    ? Array.from(memoryStore.products.values())
+    : ALL_INITIAL_PRODUCTS;
+  const relatedProducts = allProds.filter((p) =>
     article.relatedProductSlugs.includes(p.slug)
   );
 

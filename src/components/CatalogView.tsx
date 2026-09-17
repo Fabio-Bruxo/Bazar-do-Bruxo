@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Product, Intention } from '@/types';
 import ProductCard from '@/components/ProductCard';
 import { Filter, SlidersHorizontal, ArrowUpDown, Sparkles } from 'lucide-react';
+import { getStoredProducts } from '@/data/db';
 
 interface CatalogViewProps {
   title: string;
@@ -24,9 +25,38 @@ export default function CatalogView({
   const [selectedType, setSelectedType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [priceRange, setPriceRange] = useState<number>(350);
+  const [baseProducts, setBaseProducts] = useState<Product[]>(initialProducts);
+
+  useEffect(() => {
+    const updateProducts = () => {
+      const stored = getStoredProducts();
+      if (currentCategorySlug && currentCategorySlug !== 'all') {
+        if (currentCategorySlug === 'ofertas') {
+          setBaseProducts(stored.filter((p) => p.promotionalPrice && p.promotionalPrice < p.price));
+        } else if (currentCategorySlug === 'presentes') {
+          setBaseProducts(
+            stored.filter(
+              (p) => p.categorySlug === 'presentes' || p.category === 'Presentes' || p.name.includes('Pingente') || p.name.includes('Pulseira') || p.categorySlug === 'kits'
+            )
+          );
+        } else {
+          const matching = stored.filter(
+            (p) => p.categorySlug === currentCategorySlug || p.category.toLowerCase() === currentCategorySlug.toLowerCase()
+          );
+          setBaseProducts(matching);
+        }
+      } else {
+        setBaseProducts(stored);
+      }
+    };
+
+    updateProducts();
+    window.addEventListener('bazar_catalog_updated', updateProducts);
+    return () => window.removeEventListener('bazar_catalog_updated', updateProducts);
+  }, [currentCategorySlug]);
 
   const filteredProducts = useMemo(() => {
-    let result = [...initialProducts];
+    let result = [...baseProducts];
 
     // Filtro por intenção
     if (selectedIntention !== 'all') {

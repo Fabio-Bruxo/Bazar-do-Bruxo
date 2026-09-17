@@ -120,23 +120,23 @@ function ImageCropperModal({ imageSrc, isOpen, onClose, onApplyCrop }: CropperPr
   const handleConfirmCrop = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // Exporta imagem em alta qualidade 600x600
+    // Exporta imagem otimizada e nítida em 450x450 (~30KB)
     const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 600;
-    exportCanvas.height = 600;
+    exportCanvas.width = 450;
+    exportCanvas.height = 450;
     const exportCtx = exportCanvas.getContext('2d');
     if (exportCtx && imgRef.current) {
       const img = imgRef.current;
       exportCtx.save();
-      exportCtx.translate(300, 300);
+      exportCtx.translate(225, 225);
       exportCtx.rotate((rotation * Math.PI) / 180);
-      exportCtx.translate(pan.x * 1.5, pan.y * 1.5);
-      const scale = (Math.max(600 / img.width, 600 / img.height) * zoom);
+      exportCtx.translate(pan.x * 1.125, pan.y * 1.125);
+      const scale = (Math.max(450 / img.width, 450 / img.height) * zoom);
       const drawWidth = img.width * scale;
       const drawHeight = img.height * scale;
       exportCtx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
       exportCtx.restore();
-      const croppedUrl = exportCanvas.toDataURL('image/jpeg', 0.92);
+      const croppedUrl = exportCanvas.toDataURL('image/jpeg', 0.8);
       onApplyCrop(croppedUrl);
     }
     onClose();

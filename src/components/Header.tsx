@@ -21,7 +21,7 @@ import {
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
-import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { ALL_INITIAL_PRODUCTS, getStoredProducts } from '@/data/db';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 
@@ -49,12 +49,14 @@ export default function Header() {
   useEffect(() => {
     if (searchQuery.trim().length > 1) {
       const q = searchQuery.toLowerCase();
-      const results = ALL_INITIAL_PRODUCTS.filter(
+      const liveProducts = getStoredProducts();
+      const results = liveProducts.filter(
         (p) =>
-          p.name.toLowerCase().includes(q) ||
+          p.commercialStatus !== 'inativo' &&
+          (p.name.toLowerCase().includes(q) ||
           p.subtitle.toLowerCase().includes(q) ||
           p.category.toLowerCase().includes(q) ||
-          p.intentions.some((int) => int.includes(q))
+          p.intentions.some((int) => int.includes(q)))
       ).slice(0, 5);
       setSearchResults(results);
     } else {

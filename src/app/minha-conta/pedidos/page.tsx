@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
-import { INITIAL_ORDERS, ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { INITIAL_ORDERS, ALL_INITIAL_PRODUCTS, getStoredProducts } from '@/data/db';
 import { Order } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 
@@ -44,8 +44,9 @@ export default function MinhasComprasPage() {
   }, [user]);
 
   const handleReorder = (order: Order) => {
+    const catalog = getStoredProducts();
     order.items.forEach((item) => {
-      const product = ALL_INITIAL_PRODUCTS.find((p) => p.id === item.productId);
+      const product = catalog.find((p) => p.id === item.productId) || ALL_INITIAL_PRODUCTS.find((p) => p.id === item.productId);
       if (product) {
         addToCart(product, item.quantity);
       }

@@ -15,13 +15,14 @@ import {
   Clock,
   ShieldAlert
 } from 'lucide-react';
-import { INITIAL_ORDERS, INITIAL_LEADS, ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { INITIAL_ORDERS, INITIAL_LEADS, ALL_INITIAL_PRODUCTS, getStoredProducts } from '@/data/db';
 import { Order, Lead, Product } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 
 export default function AdminDashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     try {
@@ -34,6 +35,11 @@ export default function AdminDashboardPage() {
       setOrders(INITIAL_ORDERS);
       setLeads(INITIAL_LEADS);
     }
+
+    const loadProds = () => setProducts(getStoredProducts());
+    loadProds();
+    window.addEventListener('bazar_catalog_updated', loadProds);
+    return () => window.removeEventListener('bazar_catalog_updated', loadProds);
   }, []);
 
   const totalRevenue = orders.reduce((acc, o) => acc + o.total, 0);
@@ -41,7 +47,7 @@ export default function AdminDashboardPage() {
   const upsellAcceptedCount = orders.filter((o) => o.orderBumpAccepted || o.postPurchaseUpsellAccepted).length;
   const upsellRate = orders.length > 0 ? Math.round((upsellAcceptedCount / orders.length) * 100) : 0;
 
-  const pendingReviewProducts = ALL_INITIAL_PRODUCTS.filter((p) => p.commercialStatus === 'revisao' || p.commercialStatus === 'restrito');
+  const pendingReviewProducts = products.filter((p) => p.commercialStatus === 'revisao' || p.commercialStatus === 'restrito');
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

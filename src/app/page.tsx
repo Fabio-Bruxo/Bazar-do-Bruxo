@@ -17,6 +17,7 @@ import { ALL_INITIAL_PRODUCTS } from '@/data/db';
 import { INITIAL_KITS } from '@/data/kits';
 import { INITIAL_ARTICLES } from '@/data/grimorio';
 import ProductCard from '@/components/ProductCard';
+import HomeBestSellers from '@/components/HomeBestSellers';
 
 export default function HomePage() {
   // BLOCO 3: 8 produtos favoritos especificados
@@ -198,11 +199,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {bestSellers.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <HomeBestSellers initialProducts={bestSellers} />
       </section>
 
       {/* BLOCO 4 — QUIZ: NÃO SABE POR ONDE COMEÇAR? */}

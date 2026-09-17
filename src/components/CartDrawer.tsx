@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   X, 
@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { formatCurrency } from '@/utils/currency';
-import { ALL_INITIAL_PRODUCTS } from '@/data/db';
+import { getStoredProducts, Product } from '@/data/db';
 
 export default function CartDrawer() {
   const { 
@@ -39,14 +39,21 @@ export default function CartDrawer() {
 
   const [couponInput, setCouponInput] = useState('');
   const [couponFeedback, setCouponFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
+  const [catalog, setCatalog] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setCatalog(getStoredProducts());
+    const handleUpdate = () => setCatalog(getStoredProducts());
+    window.addEventListener('bazar_catalog_updated', handleUpdate);
+    return () => window.removeEventListener('bazar_catalog_updated', handleUpdate);
+  }, []);
 
   if (!isOpen) return null;
 
   // Produtos rápidos de cross-sell para o carrinho
-  const crossSellProducts = ALL_INITIAL_PRODUCTS.filter(
-    (p) => (p.id === 'prod-15' || p.id === 'prod-18' || p.id === 'prod-02') &&
-           !items.some((i) => i.product.id === p.id)
-  ).slice(0, 2);
+  const availableItems = catalog.filter((p) => !items.some((i) => i.product.id === p.id));
+  const preferredMatches = availableItems.filter((p) => p.id === 'prod-15' || p.id === 'prod-18' || p.id === 'prod-02' || p.isFeatured);
+  const crossSellProducts = (preferredMatches.length > 0 ? preferredMatches : availableItems).slice(0, 2);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
