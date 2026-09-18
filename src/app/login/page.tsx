@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Sparkles, Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 
 function LoginForm() {
   const router = useRouter();
@@ -56,6 +57,18 @@ function LoginForm() {
         <p className="font-editorial italic text-sm text-bazar-parchment/70 leading-relaxed">
           &ldquo;Que bom que seus passos trouxeram você de volta ao seu santuário.&rdquo;
         </p>
+      </div>
+
+      {/* Botão Google OAuth */}
+      <GoogleLoginButton returnTo={redirectUrl} />
+
+      {/* Separador */}
+      <div className="relative flex items-center gap-3">
+        <div className="flex-1 border-t border-bazar-charcoal-border" />
+        <span className="text-[10px] text-bazar-parchment/40 font-bold uppercase tracking-widest whitespace-nowrap">
+          ou entre com e-mail
+        </span>
+        <div className="flex-1 border-t border-bazar-charcoal-border" />
       </div>
 
       {/* Formulário de Login */}

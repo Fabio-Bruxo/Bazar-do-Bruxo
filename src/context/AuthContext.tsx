@@ -17,8 +17,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password?: string) => Promise<{ success: boolean; message?: string; role?: string }>;
+  loginWithGoogle: (returnTo?: string) => void;
   register: (data: RegisterData) => Promise<{ success: boolean; message?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (data: Partial<User>) => void;
 }
 
@@ -49,23 +50,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('bazar_auth_user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        // Limpar qualquer resquício de conta demonstrativa antiga (ex: Helena Ravena)
-        if (parsed.email === 'helena.ravena@obazar.com.br' || parsed.email === 'helena.ravena@exemplo.com' || parsed.email === 'admin@obazardobruxo.com.br') {
-          localStorage.removeItem('bazar_auth_user');
-          setUser(null);
-        } else {
-          setUser(parsed);
+    const hydrate = async () => {
+      // 1. Tenta hidratar sessão do cookie (OAuth Google ou futura sessão server-side)
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated && data.user) {
+            setUser(data.user);
+            setIsLoading(false);
+            return;
+          }
         }
+      } catch {
+        // API não disponível ou sem cookie — continua para localStorage
       }
-    } catch (e) {
-      console.error('Erro ao recuperar usuário logado', e);
-    } finally {
-      setIsLoading(false);
-    }
+
+      // 2. Fallback: sessão local (login por e-mail/senha)
+      try {
+        const savedUser = localStorage.getItem('bazar_auth_user');
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser);
+          // Limpar qualquer resquício de conta demonstrativa antiga (ex: Helena Ravena)
+          if (
+            parsed.email === 'helena.ravena@obazar.com.br' ||
+            parsed.email === 'helena.ravena@exemplo.com' ||
+            parsed.email === 'admin@obazardobruxo.com.br'
+          ) {
+            localStorage.removeItem('bazar_auth_user');
+            setUser(null);
+          } else {
+            setUser(parsed);
+          }
+        }
+      } catch (e) {
+        console.error('Erro ao recuperar usuário logado', e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    hydrate();
   }, []);
 
   const login = async (email: string, password?: string): Promise<{ success: boolean; message?: string; role?: string }> => {
@@ -158,10 +183,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  // OAuth Google: apenas redireciona, o back-end faz todo o trabalho seguro
+  const loginWithGoogle = (returnTo: string = '/conta') => {
+    window.location.href = `/api/auth/google?returnTo=${encodeURIComponent(returnTo)}`;
+  };
+
+  const logout = async () => {
     setUser(null);
     try {
       localStorage.removeItem('bazar_auth_user');
+      // Apaga o cookie httpOnly da sessão OAuth
+      await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {}
   };
 
@@ -184,6 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         updateProfile,
