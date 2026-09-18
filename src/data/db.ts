@@ -29,14 +29,10 @@ export const INITIAL_SETTINGS: StoreSettings = {
   freeShippingThreshold: 199.00,
   defaultPixDiscount: 5,
   minStoreMargin: 35,
-  activeCoupons: [
-    { code: 'PRIMEIRORITUAL', discountPercent: 10, minSubtotal: 80 },
-    { code: 'BAZAR15', discountPercent: 15, minSubtotal: 180 },
-    { code: 'CRISTALMAGICO', discountPercent: 10, minSubtotal: 50 },
-  ],
+  activeCoupons: [], // Sem cupons pré-configurados. O administrador cria os seus próprios.
   whatsappNumber: '5513998039867',
   supportEmail: 'contato@obazardobruxo.com.br',
-  topBannerText: 'Frete Grátis a partir de R$ 199 para todo o Brasil • Use o cupom PRIMEIRORITUAL para 10% OFF',
+  topBannerText: '', // Banner vazio. Configure no painel de configurações.
 };
 
 // Pedidos zerados: nenhuma venda ilusória pré-carregada
@@ -51,9 +47,10 @@ export function getStoredProducts(): Product[] {
     return [];
   }
   try {
-    // Purga imediata e irrestrita de todos os dados fictícios locais (pedidos, leads, carrinho, contas mock)
-    if (!localStorage.getItem('bazar_zeroed_v3_clean')) {
-      localStorage.setItem('bazar_zeroed_v3_clean', 'true');
+    // Purga imediata e irrestrita de todos os dados fictícios locais (pedidos, leads, carrinho, contas mock, config fictícia)
+    if (!localStorage.getItem('bazar_zeroed_v4_clean')) {
+      localStorage.setItem('bazar_zeroed_v4_clean', 'true');
+      localStorage.removeItem('bazar_zeroed_v3_clean'); // migração
       localStorage.setItem('bazar_catalog_products', JSON.stringify([]));
       localStorage.setItem('bazar_orders', JSON.stringify([]));
       localStorage.setItem('bazar_leads', JSON.stringify([]));
@@ -61,6 +58,7 @@ export function getStoredProducts(): Product[] {
       localStorage.removeItem('bazar_cart');
       localStorage.removeItem('bazar_coupon');
       localStorage.removeItem('bazar_registered_users');
+      localStorage.removeItem('bazar_store_settings'); // limpa cupons fictícios armazenados
       
       // Manter SOMENTE a conta de administrador se estiver logado
       const currentUser = localStorage.getItem('bazar_auth_user');

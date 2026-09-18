@@ -10,9 +10,9 @@ import {
   Clock, 
   Package, 
   Filter,
-  ExternalLink
+  ExternalLink,
+  ShoppingBag
 } from 'lucide-react';
-import { INITIAL_ORDERS } from '@/data/db';
 import { Order } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 
@@ -20,13 +20,16 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filterStatus, setFilterStatus] = useState('all');
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('bazar_orders') || '[]');
-      setOrders(saved.length > 0 ? saved : INITIAL_ORDERS);
+      setOrders(Array.isArray(saved) ? saved : []);
     } catch (e) {
-      setOrders(INITIAL_ORDERS);
+      setOrders([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -106,6 +109,23 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Lista de Pedidos */}
+      {!loading && orders.length === 0 ? (
+        <div className="bg-bazar-charcoal-light rounded-3xl border border-bazar-charcoal-border p-16 text-center space-y-4 shadow-mystic">
+          <div className="flex justify-center">
+            <div className="p-5 rounded-full bg-bazar-charcoal border border-bazar-charcoal-border">
+              <ShoppingBag className="w-8 h-8 text-bazar-gold/50" />
+            </div>
+          </div>
+          <div>
+            <h3 className="font-mystic text-lg font-bold text-bazar-parchment/80 mb-1">
+              Nenhum pedido registrado ainda
+            </h3>
+            <p className="text-xs text-bazar-parchment/50 max-w-sm mx-auto font-editorial italic">
+              ✦ Os pedidos realizados pelos clientes no checkout aparecerão aqui assim que forem confirmados. ✦
+            </p>
+          </div>
+        </div>
+      ) : (
       <div className="bg-bazar-charcoal-light rounded-3xl border border-bazar-charcoal-border divide-y divide-bazar-charcoal-border overflow-hidden">
         {filteredOrders.length > 0 ? (
           filteredOrders.map((order) => (
@@ -196,6 +216,7 @@ export default function AdminOrdersPage() {
           </div>
         )}
       </div>
+      )}
 
     </div>
   );
