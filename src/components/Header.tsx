@@ -21,7 +21,7 @@ import {
 import { useCart } from '@/context/CartContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
-import { ALL_INITIAL_PRODUCTS, getStoredProducts } from '@/data/db';
+import { ALL_INITIAL_PRODUCTS, getStoredProducts, getStoreSettings, StoreSettings } from '@/data/db';
 import { Product } from '@/types';
 import { formatCurrency } from '@/utils/currency';
 
@@ -37,6 +37,15 @@ export default function Header() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [settings, setSettings] = useState<StoreSettings>({ topBannerText: '', activeCoupons: [], storeName: '', slogan: '', freeShippingThreshold: 199, defaultPixDiscount: 5, minStoreMargin: 35, whatsappNumber: '5513998039867', supportEmail: '' });
+
+  useEffect(() => {
+    setSettings(getStoreSettings());
+    const onUpdate = () => setSettings(getStoreSettings());
+    window.addEventListener('bazar_settings_updated', onUpdate);
+    return () => window.removeEventListener('bazar_settings_updated', onUpdate);
+  }, []);
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,13 +89,15 @@ export default function Header() {
 
   return (
     <>
-      {/* Top Banner */}
-      <div className="bg-bazar-wine text-bazar-parchment text-xs font-medium py-1.5 px-4 text-center border-b border-bazar-wine-light flex items-center justify-center gap-2">
-        <Moon className="w-3.5 h-3.5 text-bazar-gold" />
-        <span>
-          Frete Grátis a partir de R$ 199 para todo o Brasil • Use o cupom <span className="font-bold text-bazar-gold">PRIMEIRORITUAL</span> para 10% OFF
-        </span>
-      </div>
+
+      {/* Top Banner — exibe apenas se configurado no painel de configurações */}
+      {settings.topBannerText && settings.topBannerText.trim() !== '' && (
+        <div className="bg-bazar-wine text-bazar-parchment text-xs font-medium py-1.5 px-4 text-center border-b border-bazar-wine-light flex items-center justify-center gap-2">
+          <Moon className="w-3.5 h-3.5 text-bazar-gold shrink-0" />
+          <span dangerouslySetInnerHTML={{ __html: settings.topBannerText }} />
+        </div>
+      )}
+
 
       {/* Header Principal */}
       <header
