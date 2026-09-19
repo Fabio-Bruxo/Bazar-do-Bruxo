@@ -3,21 +3,21 @@ import { signBazarJWT } from '@/lib/jwt';
 import { supabaseAdmin, isSupabaseConfigured } from '@/lib/supabase';
 import { memoryStore } from '@/lib/db';
 
-const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
-const REDIRECT_URI         = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google/callback`;
 const ADMIN_EMAIL          = 'fabinhojr6336@gmail.com';
 
 // Troca o code pelo token e busca o perfil do usuário no Google
-async function exchangeCodeForProfile(code: string) {
+async function exchangeCodeForProfile(code: string, redirectUri: string) {
+  const googleClientId     = process.env.GOOGLE_CLIENT_ID || '';
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       code,
-      client_id:     GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
-      redirect_uri:  REDIRECT_URI,
+      client_id:     googleClientId,
+      client_secret: googleClientSecret,
+      redirect_uri:  redirectUri,
       grant_type:    'authorization_code',
     }),
   });
@@ -90,7 +90,8 @@ export async function GET(req: NextRequest) {
   const code            = searchParams.get('code');
   const stateFromGoogle = searchParams.get('state');
   const errorParam      = searchParams.get('error');
-  const APP_URL         = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const APP_URL         = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const redirectUri     = `${APP_URL}/api/auth/google/callback`;
 
   if (errorParam) return NextResponse.redirect(`${APP_URL}/login?erro=google_cancelado`);
 
@@ -101,7 +102,7 @@ export async function GET(req: NextRequest) {
   if (!code) return NextResponse.redirect(`${APP_URL}/login?erro=sem_codigo`);
 
   try {
-    const profile = await exchangeCodeForProfile(code);
+    const profile = await exchangeCodeForProfile(code, redirectUri);
 
     // Admin não pode entrar via Google — usa senha exclusiva
     if (profile.email.toLowerCase() === ADMIN_EMAIL)
@@ -120,7 +121,7 @@ export async function GET(req: NextRequest) {
       avatar: user.avatar,
     });
 
-    const returnTo = req.cookies.get('bazar_oauth_return')?.value || '/conta';
+    const returnTo = req.cookies.get('bazar_oauth_return')?.value || '/minha-conta';
     const response = NextResponse.redirect(`${APP_URL}${returnTo}?login=google`);
 
     response.cookies.set('bazar_session', bazarToken, {

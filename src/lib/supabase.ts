@@ -6,33 +6,23 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
 const SUPABASE_ANON_KEY =
   process.env.SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  '';
+  'placeholder-anon-key';
 const SUPABASE_SECRET_KEY =
   process.env.SUPABASE_SECRET_KEY ||
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  '';
-
-if (!SUPABASE_URL || SUPABASE_URL.includes('<seu-projeto>')) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('[Supabase] SUPABASE_URL não configurada em produção!');
-  }
-}
+  'placeholder-secret-key';
 
 /**
- * Cliente público — usa a anon/publishable key.
- * Resposta às regras de Row Level Security (RLS) do Supabase.
- * Use para operações de leitura pública e auth do lado do cliente.
+ * Cliente público — inicializado de forma segura sem quebrar o build do Next.js
  */
 export const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
- * Cliente admin — usa a secret/service_role key.
- * BYPASS de RLS. Use APENAS em API Routes do back-end.
- * NUNCA exponha no front-end.
+ * Cliente admin — inicializado de forma segura sem quebrar o build do Next.js
  */
 export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
   auth: {
@@ -42,13 +32,17 @@ export const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
 });
 
 /**
- * Verifica se o Supabase está configurado (útil para fallback dev)
+ * Verifica se o Supabase está configurado com credenciais válidas reais
  */
 export function isSupabaseConfigured(): boolean {
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   return (
-    !!SUPABASE_URL &&
-    !SUPABASE_URL.includes('<seu-projeto>') &&
-    !!SUPABASE_SECRET_KEY &&
-    !SUPABASE_SECRET_KEY.includes('COLE_AQUI')
+    !!url &&
+    !url.includes('<seu-projeto>') &&
+    !url.includes('placeholder') &&
+    !!key &&
+    !key.includes('COLE_AQUI') &&
+    !key.includes('placeholder')
   );
 }

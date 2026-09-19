@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const REDIRECT_URI = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google/callback`;
-
-// Scopes mínimos: apenas identidade (nome, email, foto)
 const SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/userinfo.profile',
@@ -12,13 +8,20 @@ const SCOPES = [
 ].join(' ');
 
 export async function GET(req: NextRequest) {
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
+  const redirectUri = `${baseUrl}/api/auth/google/callback`;
+
+  if (!googleClientId) {
+    return NextResponse.redirect(new URL('/login?erro=config_google_ausente', req.url));
+  }
+
   // Gera um state aleatório para proteção CSRF
   const state = crypto.randomBytes(32).toString('hex');
 
-  // Persiste o state num cookie httpOnly por 10 minutos
   const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  oauthUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
-  oauthUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+  oauthUrl.searchParams.set('client_id', googleClientId);
+  oauthUrl.searchParams.set('redirect_uri', redirectUri);
   oauthUrl.searchParams.set('response_type', 'code');
   oauthUrl.searchParams.set('scope', SCOPES);
   oauthUrl.searchParams.set('access_type', 'offline');
@@ -26,7 +29,7 @@ export async function GET(req: NextRequest) {
   oauthUrl.searchParams.set('state', state);
 
   // Verifica de onde o usuário veio (checkout, etc.)
-  const returnTo = req.nextUrl.searchParams.get('returnTo') || '/conta';
+  const returnTo = req.nextUrl.searchParams.get('returnTo') || '/minha-conta';
 
   const response = NextResponse.redirect(oauthUrl.toString());
 
