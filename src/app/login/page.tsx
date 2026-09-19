@@ -25,6 +25,23 @@ function LoginForm() {
     }
   }, [isAuthenticated, redirectUrl, router]);
 
+  React.useEffect(() => {
+    const erro = searchParams.get('erro');
+    if (erro === 'google_cancelado') {
+      setErrorMsg('Autenticação com o Google foi cancelada.');
+    } else if (erro === 'config_google_ausente') {
+      setErrorMsg('Credenciais do Google OAuth não configuradas nas variáveis de ambiente.');
+    } else if (erro === 'state_invalido') {
+      setErrorMsg('Sessão expirada. Por favor, tente entrar com o Google novamente.');
+    } else if (erro === 'admin_nao_permitido_google') {
+      setErrorMsg('A conta de Administrador utiliza senha exclusiva.');
+    } else if (erro === 'email_nao_verificado') {
+      setErrorMsg('Seu e-mail do Google não possui verificação ativa.');
+    } else if (erro === 'falha_oauth') {
+      setErrorMsg('Falha ao comunicar com o Google. Verifique sua conexão e tente novamente.');
+    }
+  }, [searchParams]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
