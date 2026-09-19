@@ -8,13 +8,9 @@ const SCOPES = [
 ].join(' ');
 
 export async function GET(req: NextRequest) {
-  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const googleClientId = process.env.GOOGLE_CLIENT_ID || '688089226422-8m10vnst06058ma59299u7fra5m16kju.apps.googleusercontent.com';
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
-
-  if (!googleClientId) {
-    return NextResponse.redirect(new URL('/login?erro=config_google_ausente', req.url));
-  }
 
   // Gera um state aleatório para proteção CSRF
   const state = crypto.randomBytes(32).toString('hex');

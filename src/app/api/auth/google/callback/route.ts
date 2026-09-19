@@ -7,8 +7,8 @@ const ADMIN_EMAIL          = 'fabinhojr6336@gmail.com';
 
 // Troca o code pelo token e busca o perfil do usuário no Google
 async function exchangeCodeForProfile(code: string, redirectUri: string) {
-  const googleClientId     = process.env.GOOGLE_CLIENT_ID || '';
-  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+  const googleClientId     = process.env.GOOGLE_CLIENT_ID || '688089226422-8m10vnst06058ma59299u7fra5m16kju.apps.googleusercontent.com';
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || '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';
 
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',

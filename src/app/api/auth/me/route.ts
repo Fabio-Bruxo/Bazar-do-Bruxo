@@ -19,11 +19,23 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     authenticated: true,
     user: {
-      id:     payload.sub,
-      name:   payload.name,
-      email:  payload.email,
-      role:   payload.role,
-      avatar: payload.avatar,
+      id:       payload.sub,
+      name:     payload.name,
+      email:    payload.email,
+      role:     payload.role,
+      avatar:   payload.avatar || '',
+      phone:    '',
+      document: '',
+      address: {
+        zipCode: '',
+        street: '',
+        number: '',
+        complement: '',
+        neighborhood: '',
+        city: '',
+        state: '',
+      },
+      createdAt: new Date().toISOString(),
     },
   });
 }

@@ -23,6 +23,7 @@ import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, calculatePixDiscount } from '@/utils/currency';
 import { trackEvent } from '@/utils/analytics';
 import { Order } from '@/types';
+import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -46,19 +47,19 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (user) {
-      setCustomer({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        document: user.document,
-        zipCode: user.address.zipCode,
-        street: user.address.street,
-        number: user.address.number,
-        complement: user.address.complement || '',
-        neighborhood: user.address.neighborhood,
-        city: user.address.city,
-        state: user.address.state,
-      });
+      setCustomer((prev) => ({
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+        document: user.document || prev.document,
+        zipCode: user.address?.zipCode || prev.zipCode,
+        street: user.address?.street || prev.street,
+        number: user.address?.number || prev.number,
+        complement: user.address?.complement || prev.complement,
+        neighborhood: user.address?.neighborhood || prev.neighborhood,
+        city: user.address?.city || prev.city,
+        state: user.address?.state || prev.state,
+      }));
     }
   }, [user]);
 
@@ -191,7 +192,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Aviso de Usuário Conectado */}
-        {isAuthenticated && user && (
+        {isAuthenticated && user ? (
           <div className="mb-6 p-3.5 rounded-2xl bg-bazar-wine/30 border border-bazar-gold/40 flex items-center justify-between text-xs text-bazar-parchment">
             <div className="flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-bazar-gold shrink-0" />
@@ -202,6 +203,20 @@ export default function CheckoutPage() {
             <Link href="/minha-conta" className="text-bazar-gold underline font-semibold shrink-0">
               Ver Meu Perfil
             </Link>
+          </div>
+        ) : (
+          <div className="mb-6 p-4 rounded-2xl bg-bazar-charcoal-light/80 border border-bazar-gold/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-0.5 text-center sm:text-left">
+              <span className="text-xs font-bold text-bazar-gold uppercase tracking-wider block">
+                ✦ Agilize seu Pagamento em 1 Clique
+              </span>
+              <p className="text-xs text-bazar-parchment/70">
+                Conecte-se com o Google para preencher seus dados de compra e acompanhar o rastreio.
+              </p>
+            </div>
+            <div className="w-full sm:w-auto shrink-0">
+              <GoogleLoginButton returnTo="/checkout" label="Identificar com o Google" />
+            </div>
           </div>
         )}
 

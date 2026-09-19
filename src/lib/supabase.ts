@@ -6,15 +6,15 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://llnpckqjphhwlplrgpdu.supabase.co';
 const SUPABASE_ANON_KEY =
   process.env.SUPABASE_PUBLISHABLE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  'placeholder-anon-key';
+  'sb_publishable_NAtMS6AEwR0nqDyLZ1JXow_8-4MO-MC';
 const SUPABASE_SECRET_KEY =
   process.env.SUPABASE_SECRET_KEY ||
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'placeholder-secret-key';
+  'sb_secret_JhnOJrzqPv5buBF_qb1x1Q_HTT-CRqJ';
 
 /**
  * Cliente público — inicializado de forma segura sem quebrar o build do Next.js
